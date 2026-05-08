@@ -84,33 +84,6 @@
       border-color: rgba(255, 255, 255, 0.5);
     }
 
-    /* Edge nav zones — always on top, always clickable */
-    #nav-prev, #nav-next {
-      position: fixed;
-      top: 0;
-      width: 72px;
-      height: 100vh;
-      z-index: 100;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    #nav-prev { left: 0; }
-    #nav-next { right: 0; }
-    #nav-prev:hover, #nav-next:hover { opacity: 1; }
-
-    #nav-prev::after, #nav-next::after {
-      content: '';
-      width: 26px;
-      height: 26px;
-      border-left: 2px solid rgba(255, 255, 255, 0.7);
-      border-bottom: 2px solid rgba(255, 255, 255, 0.7);
-    }
-    #nav-prev::after { transform: rotate(45deg) translateX(4px); }
-    #nav-next::after { transform: rotate(-135deg) translateX(4px); }
   </style>
 </head>
 <body>
@@ -124,8 +97,6 @@
   <div id="hotspot-canvas"></div>
 </div>
 
-<div id="nav-prev" title="Previous"></div>
-<div id="nav-next" title="Next"></div>
 <div id="counter"></div>
 <div id="hint">← → to navigate &nbsp;·&nbsp; F to fullscreen</div>
 
@@ -293,8 +264,6 @@
     }
   });
 
-  document.getElementById('nav-prev').addEventListener('click', prev);
-  document.getElementById('nav-next').addEventListener('click', next);
 
   setTimeout(() => hint.classList.add('hidden'), 4000);
 
