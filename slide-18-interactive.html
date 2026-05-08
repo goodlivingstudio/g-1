@@ -6,12 +6,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
 
-    html, body {
-      width: 1920px;
-      height: 1080px;
-      overflow: hidden;
-      background: #000 url('slide-18.jpg') no-repeat center / 100% 100%;
+    img.slide-bg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      display: block;
     }
 
     .link {
@@ -27,28 +28,26 @@
       text-decoration: none;
       white-space: pre;
       cursor: pointer;
+      z-index: 10;
     }
 
     .link::after {
       content: '';
       position: absolute;
-      bottom: -8px;
-      left: 0;
-      width: 100%;
-      height: 3px;
+      bottom: -8px; left: 0;
+      width: 100%; height: 3px;
       background: #fff;
       transform: scaleX(0);
       transform-origin: left center;
       transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
     .link:hover::after { transform: scaleX(1); }
   </style>
 </head>
 <body>
+  <img class="slide-bg" src="slide-18.jpg" alt="">
   <a class="link"
      href="https://app.paper.design/file/01KQSYB20G4P4E36WKCHV0YKB0/7-2"
-     target="_blank"
-     rel="noopener noreferrer">See comps</a>
+     target="_blank" rel="noopener noreferrer">See comps</a>
 </body>
 </html>
