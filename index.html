@@ -3,43 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>G-1 · Intellitainer</title>
+  <title>G-1 · EXG Intelligence System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
   <style>
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     html, body {
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       background: #000;
       overflow: hidden;
     }
 
+    /* ── Stage ─────────────────────────────────────────────────────────────── */
     #stage {
-      width: 100vw;
-      height: 100vh;
+      position: fixed;
+      inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
+      background: #000;
+      transition: opacity 0.18s ease-in;
     }
 
+    #stage.fade { opacity: 0; }
+
+    /* ── Image slides ────────────────────────────────────────────────────── */
     #slide-img {
       display: block;
-      /* Images are 2x (3840×2160) — declare their logical size so the
-         browser renders them at the correct density without upscaling */
-      width: 1920px;
-      height: 1080px;
       max-width: 100vw;
       max-height: 100vh;
-      object-fit: contain;
+      width: auto;
+      height: auto;
     }
 
+    /* ── Iframe slides ───────────────────────────────────────────────────── */
     #slide-iframe {
       display: none;
+      position: absolute;
       width: 1920px;
       height: 1080px;
       border: none;
@@ -47,10 +48,88 @@
       flex-shrink: 0;
     }
 
-    /* Hotspot overlay — scaled canvas aligned to the 1920×1080 slide space */
+    /* ── Progress bar ────────────────────────────────────────────────────── */
+    #progress {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 1px;
+      background: #2a2a2a;
+      transition: width 0.25s ease;
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    /* ── Counter ─────────────────────────────────────────────────────────── */
+    #counter {
+      position: fixed;
+      bottom: 20px;
+      right: 28px;
+      color: #333;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      z-index: 200;
+      pointer-events: none;
+      transition: color 0.3s;
+    }
+
+    #counter:hover { color: #666; }
+
+    /* ── Hint ────────────────────────────────────────────────────────────── */
+    #hint {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #2a2a2a;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      z-index: 200;
+      pointer-events: none;
+      transition: opacity 1.2s ease;
+    }
+
+    #hint.gone { opacity: 0; }
+
+    /* ── Nav arrows ──────────────────────────────────────────────────────── */
+    #nav-prev, #nav-next {
+      position: fixed;
+      top: 0;
+      height: 100vh;
+      width: 72px;
+      z-index: 150;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      cursor: pointer;
+    }
+
+    #nav-prev { left: 0; }
+    #nav-next { right: 0; }
+
+    #nav-prev:hover, #nav-next:hover { opacity: 1; }
+
+    .arrow {
+      width: 18px;
+      height: 18px;
+      border-left: 1.5px solid rgba(255,255,255,0.45);
+      border-bottom: 1.5px solid rgba(255,255,255,0.45);
+    }
+
+    #nav-prev .arrow { transform: rotate(45deg) translate(3px, -3px); }
+    #nav-next .arrow { transform: rotate(-135deg) translate(-3px, -3px); }
+
+    /* ── Hotspot overlay ─────────────────────────────────────────────────── */
     #hotspot-layer {
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -71,66 +150,194 @@
       pointer-events: auto;
       cursor: pointer;
       background: transparent;
-      display: block;
     }
 
-    /* Underline-on-hover for labelled links (slide 31) */
     .hotspot-link {
       border-bottom: 1px solid transparent;
       transition: border-color 0.15s;
     }
 
-    .hotspot-link:hover {
-      border-color: rgba(255, 255, 255, 0.5);
+    .hotspot-link:hover { border-color: rgba(255,255,255,0.4); }
+
+    /* ── Grid overview ───────────────────────────────────────────────────── */
+    #grid {
+      position: fixed;
+      inset: 0;
+      background: #050505;
+      z-index: 500;
+      display: none;
+      flex-direction: column;
+      opacity: 0;
+      transition: opacity 0.2s ease;
     }
 
-    /* Edge nav zones — hover indicator only, no click handler attached */
-    #nav-prev, #nav-next {
-      position: fixed;
-      top: 0;
-      width: 72px;
-      height: 100vh;
-      z-index: 100;
+    #grid.open {
+      display: flex;
+      opacity: 0;
+    }
+
+    #grid.open.visible {
+      opacity: 1;
+    }
+
+    #grid-header {
+      padding: 28px 32px 20px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 0.2s;
+      justify-content: space-between;
+      border-bottom: 1px solid #111;
+      flex-shrink: 0;
     }
-    #nav-prev { left: 0; }
-    #nav-next { right: 0; }
-    #nav-prev:hover, #nav-next:hover { opacity: 1; }
 
-    #nav-prev::after, #nav-next::after {
-      content: '';
-      width: 26px;
-      height: 26px;
-      border-left: 2px solid rgba(255, 255, 255, 0.7);
-      border-bottom: 2px solid rgba(255, 255, 255, 0.7);
+    #grid-label {
+      color: #333;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
     }
-    #nav-prev::after { transform: rotate(45deg) translateX(4px); }
-    #nav-next::after { transform: rotate(-135deg) translateX(4px); }
 
+    #grid-close {
+      color: #333;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+
+    #grid-close:hover { color: #888; }
+
+    #grid-inner {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 32px 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+      align-content: start;
+    }
+
+    /* custom scrollbar */
+    #grid-inner::-webkit-scrollbar { width: 4px; }
+    #grid-inner::-webkit-scrollbar-track { background: transparent; }
+    #grid-inner::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
+
+    .grid-item {
+      cursor: pointer;
+      position: relative;
+    }
+
+    .grid-thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+      border: 1px solid #111;
+      transition: border-color 0.15s, opacity 0.15s;
+      opacity: 0.7;
+    }
+
+    .grid-item:hover .grid-thumb { border-color: #333; opacity: 0.9; }
+    .grid-item.current .grid-thumb { border-color: #555; opacity: 1; }
+
+    .grid-meta {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-top: 5px;
+      padding: 0 1px;
+    }
+
+    .grid-num {
+      color: #2a2a2a;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+
+    .grid-name {
+      color: #333;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .grid-item.current .grid-num { color: #555; }
+    .grid-item.current .grid-name { color: #555; }
   </style>
 </head>
 <body>
 
 <div id="stage">
   <img id="slide-img" src="" alt="">
-  <iframe id="slide-iframe" src="" tabindex="-1" allowfullscreen></iframe>
+  <iframe id="slide-iframe" tabindex="-1" allowfullscreen></iframe>
 </div>
 
-<div id="hotspot-layer">
-  <div id="hotspot-canvas"></div>
-</div>
-
-<div id="nav-prev"></div>
-<div id="nav-next"></div>
+<div id="progress"></div>
 <div id="counter"></div>
-<div id="hint">← → to navigate &nbsp;·&nbsp; F to fullscreen</div>
+<div id="hint">← → navigate &nbsp;·&nbsp; G overview &nbsp;·&nbsp; F fullscreen</div>
+
+<div id="hotspot-layer"><div id="hotspot-canvas"></div></div>
+
+<div id="nav-prev"><div class="arrow"></div></div>
+<div id="nav-next"><div class="arrow"></div></div>
+
+<!-- Grid overview -->
+<div id="grid">
+  <div id="grid-header">
+    <span id="grid-label">G-1 · EXG Intelligence System</span>
+    <span id="grid-close">ESC to close</span>
+  </div>
+  <div id="grid-inner"></div>
+</div>
 
 <script>
-  // Slides replaced with interactive HTML equivalents
+  // ── Slide config ──────────────────────────────────────────────────────────
+  const SLIDE_NAMES = [
+    'Cover',
+    'Contents',
+    'Introduction',
+    'What This Is / Isn\'t',
+    'Journey States',
+    'The Gap',
+    'Architecture',
+    'System Architecture',
+    'Zone Map',
+    'The Field',
+    'The Surface',
+    'Examples',
+    'Landing Experience',
+    'Notification Center',
+    'AI Search',
+    'AI Chat',
+    'Megamenus',
+    'Megamenu',
+    'Account Profile',
+    'Account Profile',
+    'Frameworks',
+    'Three Interaction Modes',
+    'Signal Taxonomy',
+    'Signal Inventory',
+    'Archetypes',
+    'Render Pipeline',
+    'Principles',
+    'Build Plan',
+    'Let\'s Start Building',
+    'Appendix',
+    'Appendix · Links',
+    'Thank You'
+  ];
+
+  // Slides replaced with interactive HTML
   const IFRAME_SLIDES = {
      9: 'field_interactive.html',
     17: 'slide-18-interactive.html',
@@ -138,59 +345,42 @@
     30: 'slide-31-interactive.html'
   };
 
-  // No overlay hotspots needed — links are native <a> elements in the iframes
   const HOTSPOTS = {};
 
-  // null = iframe slide (no image file)
-  const slides = [
-    'slide-01.webp',
-    'slide-02.webp',
-    'slide-03.webp',
-    'slide-04.webp',
-    'slide-05.webp',
-    'slide-06.webp',
-    'slide-07.webp',
-    'slide-08.webp',
-    'slide-09.webp',
-    null,            // 10 · The Field — interactive iframe
-    'slide-11.webp',
-    'slide-12.webp',
-    'slide-13.webp',
-    'slide-14.webp',
-    'slide-15.webp',
-    'slide-16.webp',
-    'slide-17.webp',
-    null,            // 18 · Megamenu — interactive iframe
-    'slide-19.webp',
-    null,            // 20 · Account Profile — interactive iframe
-    'slide-21.webp',
-    'slide-22.webp',
-    'slide-23.webp',
-    'slide-24.webp',
-    'slide-25.webp',
-    'slide-26.webp',
-    'slide-27.webp',
-    'slide-28.webp',
-    'slide-29.webp',
-    'slide-30.webp',
-    null,            // 31 · Appendix · Links — interactive iframe
-    'slide-32.webp'
-  ];
+  // All 32 webp files (used for thumbnails + display; iframes override display only)
+  const SLIDE_IMGS = Array.from({ length: 32 }, (_, i) => `slide-${String(i+1).padStart(2,'0')}.webp`);
 
   let current = 0;
+  let gridOpen = false;
+  let transitioning = false;
 
-  const img          = document.getElementById('slide-img');
-  const iframe       = document.getElementById('slide-iframe');
-  const counter      = document.getElementById('counter');
-  const hint         = document.getElementById('hint');
-  const hotspotCanvas = document.getElementById('hotspot-canvas');
+  // ── DOM refs ──────────────────────────────────────────────────────────────
+  const stage          = document.getElementById('stage');
+  const img            = document.getElementById('slide-img');
+  const iframe         = document.getElementById('slide-iframe');
+  const counter        = document.getElementById('counter');
+  const hint           = document.getElementById('hint');
+  const progress       = document.getElementById('progress');
+  const hotspotCanvas  = document.getElementById('hotspot-canvas');
+  const grid           = document.getElementById('grid');
+  const gridInner      = document.getElementById('grid-inner');
+  const navPrev        = document.getElementById('nav-prev');
+  const navNext        = document.getElementById('nav-next');
 
-  function scaleCanvas() {
-    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-    iframe.style.transform        = `scale(${scale})`;
-    hotspotCanvas.style.transform = `scale(${scale})`;
+  // ── Scaling ───────────────────────────────────────────────────────────────
+  function getScale() {
+    return Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
   }
 
+  function applyScale() {
+    const s = getScale();
+    iframe.style.transform       = `scale(${s})`;
+    hotspotCanvas.style.transform = `scale(${s})`;
+  }
+
+  window.addEventListener('resize', applyScale);
+
+  // ── Hotspots ──────────────────────────────────────────────────────────────
   function renderHotspots(index) {
     hotspotCanvas.innerHTML = '';
     const spots = HOTSPOTS[index];
@@ -201,17 +391,14 @@
       a.target = '_blank';
       a.rel = 'noopener noreferrer';
       a.className = 'hotspot' + (type === 'link' ? ' hotspot-link' : '');
-      a.style.left   = x + 'px';
-      a.style.top    = y + 'px';
-      a.style.width  = w + 'px';
-      a.style.height = h + 'px';
+      Object.assign(a.style, { left: x+'px', top: y+'px', width: w+'px', height: h+'px' });
       hotspotCanvas.appendChild(a);
     });
   }
 
-  function show(index) {
-    current = Math.max(0, Math.min(slides.length - 1, index));
-    const iframeUrl = IFRAME_SLIDES[current];
+  // ── Show slide ────────────────────────────────────────────────────────────
+  function setContent(index) {
+    const iframeUrl = IFRAME_SLIDES[index];
 
     if (iframeUrl !== undefined) {
       if (iframe.dataset.loaded !== iframeUrl) {
@@ -221,20 +408,99 @@
       img.style.display    = 'none';
       iframe.style.display = 'block';
     } else {
-      img.src              = slides[current];
+      img.src              = SLIDE_IMGS[index];
       img.style.display    = 'block';
       iframe.style.display = 'none';
     }
 
-    renderHotspots(current);
-    scaleCanvas();
-    counter.textContent = (current + 1) + ' / ' + slides.length;
-    document.body.focus();
+    renderHotspots(index);
+    applyScale();
+
+    counter.textContent = `${index + 1} / ${SLIDE_IMGS.length}`;
+    progress.style.width = `${((index + 1) / SLIDE_IMGS.length) * 100}%`;
+
+    // Sync grid highlight
+    document.querySelectorAll('.grid-item').forEach((el, i) => {
+      el.classList.toggle('current', i === index);
+    });
+  }
+
+  function show(index, instant) {
+    const target = Math.max(0, Math.min(SLIDE_IMGS.length - 1, index));
+    if (target === current && !instant) return;
+    current = target;
+
+    if (instant) {
+      setContent(current);
+      return;
+    }
+
+    if (transitioning) return;
+    transitioning = true;
+
+    stage.classList.add('fade');
+    setTimeout(() => {
+      setContent(current);
+      // Brief pause at black, then fade in
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          stage.classList.remove('fade');
+          stage.style.transition = 'opacity 0.28s ease-out';
+          setTimeout(() => {
+            stage.style.transition = 'opacity 0.18s ease-in';
+            transitioning = false;
+          }, 300);
+        });
+      });
+    }, 180);
   }
 
   function next() { show(current + 1); }
   function prev() { show(current - 1); }
 
+  // ── Grid overview ─────────────────────────────────────────────────────────
+  function buildGrid() {
+    gridInner.innerHTML = '';
+    SLIDE_IMGS.forEach((src, i) => {
+      const item = document.createElement('div');
+      item.className = 'grid-item' + (i === current ? ' current' : '');
+      item.innerHTML = `
+        <img class="grid-thumb" src="${src}" alt="" loading="lazy">
+        <div class="grid-meta">
+          <span class="grid-num">${String(i+1).padStart(2,'0')}</span>
+          <span class="grid-name">${SLIDE_NAMES[i] || ''}</span>
+        </div>`;
+      item.addEventListener('click', () => {
+        closeGrid();
+        show(i);
+      });
+      gridInner.appendChild(item);
+    });
+  }
+
+  function openGrid() {
+    buildGrid();
+    gridOpen = true;
+    grid.classList.add('open');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => grid.classList.add('visible'));
+    });
+    // Scroll current slide into view
+    setTimeout(() => {
+      const cur = gridInner.querySelector('.current');
+      if (cur) cur.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 50);
+  }
+
+  function closeGrid() {
+    gridOpen = false;
+    grid.classList.remove('visible');
+    setTimeout(() => grid.classList.remove('open'), 200);
+  }
+
+  document.getElementById('grid-close').addEventListener('click', closeGrid);
+
+  // ── Fullscreen ────────────────────────────────────────────────────────────
   function toggleFullscreen() {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
@@ -243,20 +509,28 @@
     }
   }
 
+  // ── Preload ───────────────────────────────────────────────────────────────
   function preload(index) {
-    if (index >= 0 && index < slides.length && slides[index]) {
-      new Image().src = slides[index];
+    if (index >= 0 && index < SLIDE_IMGS.length) {
+      new Image().src = SLIDE_IMGS[index];
     }
   }
 
   img.addEventListener('load', () => {
     preload(current + 1);
-    preload(current - 1);
+    preload(current + 2);
   });
 
-  window.addEventListener('resize', scaleCanvas);
+  // ── Navigation clicks ─────────────────────────────────────────────────────
+  navPrev.addEventListener('click', prev);
+  navNext.addEventListener('click', next);
 
-  document.addEventListener('keydown', (e) => {
+  // ── Keyboard ──────────────────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (gridOpen) {
+      if (e.key === 'Escape' || e.key === 'g' || e.key === 'G') closeGrid();
+      return;
+    }
     switch (e.key) {
       case 'ArrowRight':
       case 'ArrowDown':
@@ -267,17 +541,23 @@
         e.preventDefault(); prev(); break;
       case 'f': case 'F':
         toggleFullscreen(); break;
+      case 'g': case 'G':
+        openGrid(); break;
+      case 'Escape':
+        if (document.fullscreenElement) document.exitFullscreen();
+        break;
       case 'Home': show(0); break;
-      case 'End':  show(slides.length - 1); break;
+      case 'End':  show(SLIDE_IMGS.length - 1); break;
     }
   });
 
+  // ── Hint fade ─────────────────────────────────────────────────────────────
+  setTimeout(() => hint.classList.add('gone'), 5000);
 
-  setTimeout(() => hint.classList.add('hidden'), 4000);
-
-  document.body.setAttribute('tabindex', '-1');
-  show(0);
+  // ── Init ──────────────────────────────────────────────────────────────────
+  show(0, true);
+  preload(1);
+  preload(2);
 </script>
-
 </body>
 </html>
