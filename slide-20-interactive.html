@@ -44,22 +44,40 @@
 
     main {
       position: absolute;
-      top: 84px; left: 80px; right: 80px; bottom: 96px;
+      top: 84px; left: 0; right: 0; bottom: 96px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    .cta {
+    .link {
       font-family: 'Inter', sans-serif;
       font-size: 96px;
       font-weight: 400;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.03em;
+      line-height: 1;
       color: #fff;
       text-decoration: none;
-      transition: opacity 0.15s;
+      position: relative;
+      display: inline-block;
     }
-    .cta:hover { opacity: 0.55; }
+
+    .link::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: #fff;
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .link:hover::after {
+      transform: scaleX(1);
+    }
 
     footer {
       position: absolute;
@@ -101,7 +119,7 @@
   <div class="rule rule-header"></div>
 
   <main>
-    <a class="cta"
+    <a class="link"
        href="https://app.paper.design/file/01KQSYB20G4P4E36WKCHV0YKB0/2-0"
        target="_blank"
        rel="noopener noreferrer">
