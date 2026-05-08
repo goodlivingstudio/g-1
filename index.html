@@ -60,23 +60,6 @@
       pointer-events: none;
     }
 
-    /* ── Counter ─────────────────────────────────────────────────────────── */
-    #counter {
-      position: fixed;
-      bottom: 20px;
-      right: 28px;
-      color: #333;
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 10px;
-      font-weight: 300;
-      letter-spacing: 0.12em;
-      z-index: 200;
-      pointer-events: none;
-      transition: color 0.3s;
-    }
-
-    #counter:hover { color: #666; }
-
     /* ── Hint ────────────────────────────────────────────────────────────── */
     #hint {
       position: fixed;
@@ -299,7 +282,6 @@
 </div>
 
 <div id="progress"></div>
-<div id="counter"></div>
 <div id="hint">← → navigate &nbsp;·&nbsp; G overview &nbsp;·&nbsp; F fullscreen</div>
 
 <div id="hotspot-layer"><div id="hotspot-canvas"></div></div>
@@ -371,7 +353,6 @@
   const stage          = document.getElementById('stage');
   const img            = document.getElementById('slide-img');
   const iframe         = document.getElementById('slide-iframe');
-  const counter        = document.getElementById('counter');
   const hint           = document.getElementById('hint');
   const progress       = document.getElementById('progress');
   const hotspotCanvas  = document.getElementById('hotspot-canvas');
@@ -429,7 +410,6 @@
     renderHotspots(index);
     applyScale();
 
-    counter.textContent = `${index + 1} / ${SLIDE_IMGS.length}`;
     progress.style.width = `${((index + 1) / SLIDE_IMGS.length) * 100}%`;
 
     // Sync grid highlight
