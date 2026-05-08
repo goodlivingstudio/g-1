@@ -9,45 +9,32 @@
     html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
 
     img.slide-bg {
-      position: absolute;
-      top: 0; left: 0;
-      width: 1920px; height: 1080px;
-      display: block;
+      position: absolute; top: 0; left: 0;
+      width: 1920px; height: 1080px; display: block;
     }
 
     .link {
       position: absolute;
-      left: 592px;
-      top: 466px;
+      left: 592px; top: 466px;
       font-family: 'Inter', system-ui, sans-serif;
-      font-size: 120px;
-      font-weight: 500;
-      letter-spacing: -0.025em;
-      line-height: 1;
+      font-size: 120px; font-weight: 500;
+      letter-spacing: -0.025em; line-height: 1;
       color: transparent;
-      text-decoration: none;
-      white-space: pre;
-      cursor: pointer;
-      z-index: 10;
+      text-decoration: underline;
+      text-decoration-color: #fff;
+      text-decoration-thickness: 3px;
+      text-underline-offset: 10px;
+      text-decoration-skip-ink: none;
+      white-space: nowrap;
+      cursor: pointer; z-index: 10;
+      clip-path: inset(0 100% 0 0);
+      transition: clip-path 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-    .link::after {
-      content: '';
-      position: absolute;
-      bottom: -8px; left: 0;
-      width: 100%; height: 3px;
-      background: #fff;
-      transform: scaleX(0);
-      transform-origin: left center;
-      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .link:hover::after { transform: scaleX(1); }
+    .link:hover { clip-path: inset(0 0% 0 0); }
   </style>
 </head>
 <body>
   <img class="slide-bg" src="slide-20.jpg" alt="">
-  <a class="link"
-     href="https://app.paper.design/file/01KQSYB20G4P4E36WKCHV0YKB0/2-0"
-     target="_blank" rel="noopener noreferrer">See comps</a>
+  <a class="link" href="https://app.paper.design/file/01KQSYB20G4P4E36WKCHV0YKB0/2-0" target="_blank" rel="noopener noreferrer">See comps</a>
 </body>
 </html>

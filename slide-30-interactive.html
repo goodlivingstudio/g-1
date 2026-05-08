@@ -9,54 +9,38 @@
     html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
 
     img.slide-bg {
-      position: absolute;
-      top: 0; left: 0;
-      width: 1920px; height: 1080px;
-      display: block;
+      position: absolute; top: 0; left: 0;
+      width: 1920px; height: 1080px; display: block;
     }
 
     .link {
       position: absolute;
       left: 80px;
       font-family: 'Inter', system-ui, sans-serif;
-      font-size: 48px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      line-height: 1;
+      font-size: 48px; font-weight: 600;
+      letter-spacing: -0.02em; line-height: 1;
       color: transparent;
-      text-decoration: none;
-      white-space: pre;
-      cursor: pointer;
-      z-index: 10;
+      text-decoration: underline;
+      text-decoration-color: #fff;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 6px;
+      text-decoration-skip-ink: none;
+      white-space: nowrap;
+      cursor: pointer; z-index: 10;
+      clip-path: inset(0 100% 0 0);
+      transition: clip-path 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    .link:hover { clip-path: inset(0 0% 0 0); }
 
     .link-1 { top: 368px; }
     .link-2 { top: 456px; }
     .link-3 { top: 544px; }
-
-    .link::after {
-      content: '';
-      position: absolute;
-      bottom: -5px; left: 0;
-      width: 100%; height: 2px;
-      background: #fff;
-      transform: scaleX(0);
-      transform-origin: left center;
-      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .link:hover::after { transform: scaleX(1); }
   </style>
 </head>
 <body>
   <img class="slide-bg" src="slide-30.jpg" alt="">
-  <a class="link link-1"
-     href="https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/3-0"
-     target="_blank" rel="noopener noreferrer">Intelligent DS</a>
-  <a class="link link-2"
-     href="https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/C-1"
-     target="_blank" rel="noopener noreferrer">Audit &amp; Opportunities</a>
-  <a class="link link-3"
-     href="https://www.figma.com/design/SGH6YV53bR2GMp781BSJBS/Explore.gov?node-id=65954-27863"
-     target="_blank" rel="noopener noreferrer">Research</a>
+  <a class="link link-1" href="https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/3-0" target="_blank" rel="noopener noreferrer">Intelligent DS</a>
+  <a class="link link-2" href="https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/C-1" target="_blank" rel="noopener noreferrer">Audit &amp; Opportunities</a>
+  <a class="link link-3" href="https://www.figma.com/design/SGH6YV53bR2GMp781BSJBS/Explore.gov?node-id=65954-27863" target="_blank" rel="noopener noreferrer">Research</a>
 </body>
 </html>
