@@ -1192,18 +1192,6 @@ window.addEventListener('keydown', e => {
     case 'r': case 'R':  resetCamera();              break;
     case ' ':            e.preventDefault(); setOrbit(!orbitActive); break;
     case 'Escape':       hideCard();                  break;
-    case 'ArrowRight': {
-      e.preventDefault();
-      const next = selectedIdx === null ? 0 : (selectedIdx + 1) % NODE_DATA.length;
-      showCard(next);
-      break;
-    }
-    case 'ArrowLeft': {
-      e.preventDefault();
-      const prev = selectedIdx === null ? NODE_DATA.length - 1 : (selectedIdx - 1 + NODE_DATA.length) % NODE_DATA.length;
-      showCard(prev);
-      break;
-    }
   }
 });
 
