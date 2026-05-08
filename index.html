@@ -84,6 +84,34 @@
       border-color: rgba(255, 255, 255, 0.5);
     }
 
+    /* Edge nav zones — visual indicator only, no click */
+    #nav-prev, #nav-next {
+      position: fixed;
+      top: 0;
+      width: 72px;
+      height: 100vh;
+      z-index: 100;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    #nav-prev { left: 0; }
+    #nav-next { right: 0; }
+    #nav-prev:hover, #nav-next:hover { opacity: 1; }
+
+    #nav-prev::after, #nav-next::after {
+      content: '';
+      width: 26px;
+      height: 26px;
+      border-left: 2px solid rgba(255, 255, 255, 0.7);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.7);
+    }
+    #nav-prev::after { transform: rotate(45deg) translateX(4px); }
+    #nav-next::after { transform: rotate(-135deg) translateX(4px); }
+
   </style>
 </head>
 <body>
@@ -97,6 +125,8 @@
   <div id="hotspot-canvas"></div>
 </div>
 
+<div id="nav-prev"></div>
+<div id="nav-next"></div>
 <div id="counter"></div>
 <div id="hint">← → to navigate &nbsp;·&nbsp; F to fullscreen</div>
 
@@ -110,24 +140,24 @@
   // type 'cta'  — large invisible zone, cursor:pointer only (slides 18, 20)
   // type 'link' — underlines on hover (slide 31)
   const HOTSPOTS = {
-    17: [  // Slide 18 · Megamenu
-      { x: 400, y: 355, w: 1120, h: 130,
+    17: [  // Slide 18 · Megamenu — full body zone
+      { x: 80, y: 90, w: 1760, h: 900,
         url: 'https://app.paper.design/file/01KQSYB20G4P4E36WKCHV0YKB0/7-2',
         type: 'cta' }
     ],
-    19: [  // Slide 20 · Account Profile
-      { x: 400, y: 355, w: 1120, h: 130,
+    19: [  // Slide 20 · Account Profile — full body zone
+      { x: 80, y: 90, w: 1760, h: 900,
         url: 'https://app.paper.design/file/01KQSYB20G4P4E36WKCHV0YKB0/2-0',
         type: 'cta' }
     ],
     30: [  // Slide 31 · Appendix · Links
-      { x: 62, y: 260, w: 220, h: 55,
+      { x: 62, y: 245, w: 280, h: 72,
         url: 'https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/3-0',
         type: 'link' },
-      { x: 62, y: 328, w: 340, h: 55,
+      { x: 62, y: 318, w: 420, h: 72,
         url: 'https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/C-1',
         type: 'link' },
-      { x: 62, y: 394, w: 165, h: 55,
+      { x: 62, y: 390, w: 200, h: 72,
         url: 'https://www.figma.com/design/SGH6YV53bR2GMp781BSJBS/Explore.gov?node-id=65954-27863',
         type: 'link' }
     ]
