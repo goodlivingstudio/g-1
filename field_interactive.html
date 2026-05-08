@@ -77,20 +77,20 @@
     }
 
     .node-label .name {
-      font-size: 12px;
-      letter-spacing: 0.03em;
-      color: #888;
-      font-weight: 300;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+      color: #b0b0b0;
+      font-weight: 400;
       transition: color 0.2s;
     }
 
     .node-label:hover .name,
-    .node-label.selected .name { color: #d0d0d0; }
+    .node-label.selected .name { color: #ffffff; }
 
     .node-label.accent .zone   { color: #44a070; }
-    .node-label.accent .name   { color: #aaa; }
+    .node-label.accent .name   { color: #c8c8c8; }
     .node-label.accent:hover .name,
-    .node-label.accent.selected .name { color: #e8e8e8; }
+    .node-label.accent.selected .name { color: #ffffff; }
 
     /* ── INFO CARD ──────────────────────────────────────────────────────────── */
 
@@ -408,75 +408,77 @@
 
     #controls-bar {
       position: fixed;
-      top: 8px;
-      left: 8px;
-      right: 8px;
-      height: 40px;
-      border-radius: 3px;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      height: 56px;
+      border-radius: 6px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 2px;
+      gap: 4px;
       z-index: 15;
-      border-bottom: 1px solid #0e0e0e;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(8px);
+      border: 1px solid #1a1a1a;
+      background: rgba(6,6,6,0.88);
+      backdrop-filter: blur(12px);
     }
 
     .ctrl-sep {
       width: 1px;
-      height: 14px;
-      background: #1c1c1c;
-      margin: 0 6px;
+      height: 20px;
+      background: #2a2a2a;
+      margin: 0 8px;
       flex-shrink: 0;
     }
 
     .ctrl-btn {
       display: flex;
       align-items: center;
-      gap: 5px;
-      padding: 5px 9px;
+      gap: 7px;
+      padding: 10px 16px;
       background: none;
       border: 1px solid transparent;
       cursor: pointer;
-      transition: border-color 0.2s, opacity 0.2s;
-      opacity: 0.75;
-      border-radius: 2px;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+      opacity: 1;
+      border-radius: 4px;
     }
 
     .ctrl-btn:hover {
-      border-color: #1e4a32;
-      background: rgba(30, 74, 50, 0.18);
-      opacity: 1;
+      border-color: #2e7a5a;
+      background: rgba(46, 122, 90, 0.22);
     }
+
+    .ctrl-btn:hover .ctrl-label { color: #e8e8e8; }
+    .ctrl-btn:hover .kbd        { color: #7effc4; border-color: #3a9060; }
 
     .ctrl-btn.active {
-      border-color: #2e7a5a;
-      opacity: 1;
+      border-color: #44a070;
+      background: rgba(68, 160, 112, 0.18);
     }
 
-    .ctrl-btn.active .ctrl-label { color: #44a070; }
-    .ctrl-btn.active .kbd        { color: #44a070; border-color: #2e7a5a; background: #0a1a10; }
+    .ctrl-btn.active .ctrl-label { color: #7effc4; }
+    .ctrl-btn.active .kbd        { color: #7effc4; border-color: #44a070; background: #0d2018; }
 
     .kbd {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 8px;
+      font-size: 10px;
       letter-spacing: 0.06em;
       color: #44a070;
-      background: #090f0c;
-      border: 1px solid #1a3828;
-      padding: 2px 4px;
-      min-width: 16px;
+      background: #0a1510;
+      border: 1px solid #1e4a32;
+      padding: 3px 6px;
+      min-width: 20px;
       text-align: center;
       line-height: 1.4;
-      border-radius: 2px;
+      border-radius: 3px;
     }
 
     .ctrl-label {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 0.10em;
-      color: #999;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: #c0c0c0;
       text-transform: uppercase;
       white-space: nowrap;
     }
