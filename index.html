@@ -354,12 +354,22 @@
   ];
 
   const IFRAME_SLIDES = {
-     9: 'field_interactive.html',
-    17: 'slide-18-interactive.html',
-    19: 'slide-20-interactive.html',
-    30: 'slide-31-interactive.html'
+     9: 'field_interactive.html'
   };
-  const HOTSPOTS = {};
+
+  const HOTSPOTS = {
+    30: [  // Slide 31 · Appendix · Links
+      { x: 62, y: 260, w: 300, h: 75,
+        url: 'https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/3-0',
+        type: 'link' },
+      { x: 62, y: 335, w: 460, h: 75,
+        url: 'https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/C-1',
+        type: 'link' },
+      { x: 62, y: 410, w: 240, h: 75,
+        url: 'https://www.figma.com/design/SGH6YV53bR2GMp781BSJBS/Explore.gov?node-id=65954-27863',
+        type: 'link' }
+    ]
+  };
 
   const SLIDE_IMGS = Array.from({ length: 32 }, (_, i) => `slide-${String(i+1).padStart(2,'0')}.jpg`);
 
