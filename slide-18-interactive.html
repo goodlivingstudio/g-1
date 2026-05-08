@@ -17,38 +17,23 @@
       letter-spacing: -0.025em; line-height: 1;
       color: transparent;
       text-decoration: none;
+      text-decoration-color: #fff;
+      text-decoration-thickness: 3px;
+      text-underline-offset: 10px;
       white-space: nowrap;
       cursor: pointer; z-index: 10;
+      transition: text-decoration-color 0.2s;
     }
-
-    .link::after {
-      content: '';
-      position: absolute;
-      bottom: -8px; left: 0;
-      width: var(--uw, 100%); height: 3px;
-      background: #fff;
-      transform: scaleX(0);
-      transform-origin: left center;
-      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    .link:hover {
+      text-decoration: underline;
+      text-decoration-color: #fff;
+      text-decoration-thickness: 3px;
+      text-underline-offset: 10px;
     }
-    .link:hover::after { transform: scaleX(1); }
   </style>
 </head>
 <body>
   <img class="slide-bg" src="slide-18.jpg" alt="">
   <a class="link" href="https://app.paper.design/file/01KQSYB20G4P4E36WKCHV0YKB0/7-2" target="_blank" rel="noopener noreferrer">See comps</a>
-  <script>
-    document.fonts.ready.then(() => {
-      document.querySelectorAll('.link').forEach(link => {
-        const cs = getComputedStyle(link);
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if ('letterSpacing' in ctx) ctx.letterSpacing = cs.letterSpacing;
-        ctx.font = cs.fontWeight + ' ' + cs.fontSize + ' Inter';
-        const m = ctx.measureText(link.textContent.trim());
-        link.style.setProperty('--uw', Math.ceil(m.actualBoundingBoxRight) + 'px');
-      });
-    });
-  </script>
 </body>
 </html>
