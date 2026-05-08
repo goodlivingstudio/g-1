@@ -129,8 +129,14 @@
     .arrow {
       width: 22px;
       height: 22px;
-      border-left: 2.5px solid rgba(255,255,255,0.9);
-      border-bottom: 2.5px solid rgba(255,255,255,0.9);
+      border-left: 2.5px solid rgba(255,255,255,0.25);
+      border-bottom: 2.5px solid rgba(255,255,255,0.25);
+      transition: border-color 0.2s;
+    }
+
+    #nav-prev:hover .arrow,
+    #nav-next:hover .arrow {
+      border-color: rgba(255,255,255,1);
     }
 
     #nav-prev .arrow { transform: rotate(45deg) translate(4px, -4px); }
