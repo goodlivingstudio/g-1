@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Field · Explore.gov Intelligence System</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&family=Inter:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+
+    body {
+      background: #000;
+      overflow: hidden;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    canvas { display: block; }
+
+    /* ── TITLE ──────────────────────────────────────────────────────────────── */
+
+    #title {
+      position: fixed;
+      top: 56px;
+      left: 40px;
+      pointer-events: none;
+      z-index: 10;
+      text-align: left;
+    }
+
+    #title .t-main {
+      font-family: 'Inter', sans-serif;
+      font-size: 38px;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+      line-height: 1;
+    }
+
+    #title .t-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      color: #44a070;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    /* ── LABELS ─────────────────────────────────────────────────────────────── */
+
+    #labels {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    #labels.active {
+      opacity: 1;
+    }
+
+    .node-label {
+      position: absolute;
+      white-space: nowrap;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: opacity 0.3s ease;
+    }
+
+    .node-label .zone {
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: #44a070;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .node-label .name {
+      font-size: 12px;
+      letter-spacing: 0.03em;
+      color: #888;
+      font-weight: 300;
+      transition: color 0.2s;
+    }
+
+    .node-label:hover .name,
+    .node-label.selected .name { color: #d0d0d0; }
+
+    .node-label.accent .zone   { color: #44a070; }
+    .node-label.accent .name   { color: #aaa; }
+    .node-label.accent:hover .name,
+    .node-label.accent.selected .name { color: #e8e8e8; }
+
+    /* ── INFO CARD ──────────────────────────────────────────────────────────── */
+
+    #info-card {
+      position: fixed;
+      left: 40px;
+      top: 50%;
+      transform: translateY(-50%) translateX(-480px);
+      width: 300px;
+      background: #060606;
+      border: 1px solid #1e4a32;
+      box-shadow: 0 0 0 1px rgba(76, 175, 125, 0.15), 0 0 60px 8px rgba(76, 175, 125, 0.18), 0 0 140px 24px rgba(76, 175, 125, 0.10), 0 0 280px 60px rgba(76, 175, 125, 0.05);
+      padding: 28px 28px 24px;
+      z-index: 20;
+      opacity: 0;
+      transition:
+        transform 0.60s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity   0.30s ease 0.10s;
+      pointer-events: none;
+    }
+
+    #info-card.visible {
+      transform: translateY(-50%) translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Card flips to right rail when node projects to left half of screen */
+    #info-card.flip-right {
+      left: auto;
+      right: 40px;
+      transform: translateY(-50%) translateX(480px);
+    }
+    #info-card.flip-right.visible {
+      transform: translateY(-50%) translateX(0);
+    }
+
+    .card-top-rule {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(to right, #2d7050, transparent);
+      margin-bottom: 20px;
+    }
+
+    .card-eyebrow {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      color: #ffffff;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 20px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: #d8d8d8;
+      margin-bottom: 20px;
+      line-height: 1.15;
+    }
+
+    .card-body {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: #888;
+      margin-bottom: 22px;
+    }
+
+    .card-role-label {
+      font-size: 8px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin-bottom: 7px;
+    }
+
+    .card-location {
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: #888;
+      line-height: 1.6;
+    }
+
+    .card-role {
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: #888;
+      line-height: 1.9;
+      white-space: pre-line;
+    }
+
+    #card-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 15px;
+      cursor: pointer;
+      padding: 4px 8px;
+      font-family: 'IBM Plex Mono', monospace;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+    #card-close:hover { color: #aaa; }
+
+    /* ── ABOUT PANEL ────────────────────────────────────────────────────────── */
+
+    #about-card {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      width: 400px;
+      background: #060606;
+      border-right: 1px solid #1a3828;
+      z-index: 20;
+      opacity: 0;
+      transform: translateX(-420px);
+      transition:
+        transform 0.60s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity   0.30s ease 0.10s;
+      pointer-events: none;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #about-card.visible {
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .about-header {
+      padding: 56px 32px 24px;
+      border-bottom: 1px solid #111;
+      flex-shrink: 0;
+    }
+
+    .about-header .card-eyebrow { margin-bottom: 10px; }
+
+    .about-headline {
+      font-family: 'Inter', sans-serif;
+      font-size: 48px;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .about-lead {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: #777;
+    }
+
+    #about-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 15px;
+      cursor: pointer;
+      padding: 4px 8px;
+      font-family: 'IBM Plex Mono', monospace;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+    #about-close:hover { color: #aaa; }
+
+    .about-body {
+      padding: 0 32px 48px;
+      flex: 1;
+    }
+
+    .about-section {
+      padding: 24px 0;
+      border-bottom: 1px solid #0e0e0e;
+    }
+    .about-section:last-child { border-bottom: none; }
+
+    .about-section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin-bottom: 14px;
+    }
+
+    .about-section p {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 300;
+      line-height: 1.75;
+      color: #777;
+    }
+
+    .about-zone-row {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .about-zone-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .about-zone-name {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      color: #d0d0d0;
+      letter-spacing: 0.01em;
+    }
+
+    .about-zone-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .about-step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .about-step {
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+    }
+
+    .about-step-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      color: #44a070;
+      flex-shrink: 0;
+      width: 12px;
+    }
+
+    .about-step-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 300;
+      color: #777;
+      line-height: 1.6;
+    }
+
+    .about-mode-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .about-mode-name {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 400;
+      color: #d0d0d0;
+      margin-bottom: 2px;
+    }
+
+    .about-mode-desc {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    #about-card::-webkit-scrollbar        { width: 3px; }
+    #about-card::-webkit-scrollbar-track  { background: transparent; margin: 33vh 0; }
+    #about-card::-webkit-scrollbar-thumb  {
+      background: #1e4a32;
+      border-radius: 2px;
+    }
+    #about-card::-webkit-scrollbar-thumb:hover { background: #44a070; }
+    #about-card { scrollbar-width: thin; scrollbar-color: #1e4a32 transparent; }
+
+    /* ── HINT ───────────────────────────────────────────────────────────────── */
+
+    #hint {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      color: #444;
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 10;
+      transition: opacity 2s ease;
+      white-space: nowrap;
+    }
+    #hint.fade { opacity: 0; }
+
+    /* ── CONTROLS BAR ───────────────────────────────────────────────────────── */
+
+    #controls-bar {
+      position: fixed;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      height: 40px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      z-index: 15;
+      border-bottom: 1px solid #0e0e0e;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(8px);
+    }
+
+    .ctrl-sep {
+      width: 1px;
+      height: 14px;
+      background: #1c1c1c;
+      margin: 0 6px;
+      flex-shrink: 0;
+    }
+
+    .ctrl-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 9px;
+      background: none;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.2s, opacity 0.2s;
+      opacity: 0.75;
+      border-radius: 2px;
+    }
+
+    .ctrl-btn:hover {
+      border-color: #1e4a32;
+      background: rgba(30, 74, 50, 0.18);
+      opacity: 1;
+    }
+
+    .ctrl-btn.active {
+      border-color: #2e7a5a;
+      opacity: 1;
+    }
+
+    .ctrl-btn.active .ctrl-label { color: #44a070; }
+    .ctrl-btn.active .kbd        { color: #44a070; border-color: #2e7a5a; background: #0a1a10; }
+
+    .kbd {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 0.06em;
+      color: #44a070;
+      background: #090f0c;
+      border: 1px solid #1a3828;
+      padding: 2px 4px;
+      min-width: 16px;
+      text-align: center;
+      line-height: 1.4;
+      border-radius: 2px;
+    }
+
+    .ctrl-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.10em;
+      color: #999;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    /* ── PAGE TITLE ─────────────────────────────────────────────────────────── */
+    #page-title {
+      position: fixed;
+      top: 56px;
+      left: 40px;
+      pointer-events: none;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+
+
+<div id="labels"></div>
+
+<div id="about-card">
+  <button id="about-close">×</button>
+  <div class="about-header">
+    <div class="about-headline">The Field</div>
+    <p class="about-lead">A live model of the Intelligence System — five surfaces distributed across the interface, unified by a single responsive layer that reads visitor intent and delivers guidance in real time.</p>
+  </div>
+  <div class="about-body">
+
+    <div class="about-section">
+      <div class="about-section-label">What It Is</div>
+      <p>The Field is not a single feature — it is an architectural layer. What visitors experience as a search bar, a notification badge, and a chat window is, structurally, one coherent intelligence surface operating across four zones. Each surface is an entry point into the same underlying system.</p>
+    </div>
+
+    <div class="about-section">
+<div class="about-zone-row">
+        <div class="about-zone-item">
+          <div class="about-zone-name">Zone A · Nav Bar</div>
+          <div class="about-zone-desc">AI Search captures intent and activates The Field. Notifications reflect ambient system awareness — shifting between Idle, Aware, and Live.</div>
+        </div>
+        <div class="about-zone-item">
+          <div class="about-zone-name">Zone B · Filter Bar</div>
+          <div class="about-zone-desc">Filtered Content shapes what The Field prioritizes without navigating away — by park, season, activity, or inferred intent.</div>
+        </div>
+        <div class="about-zone-item">
+          <div class="about-zone-name">Zone C · Flyout Panel</div>
+          <div class="about-zone-desc">The Notification Center delivers proactive intelligence — alerts, curated pathways, guidance — as a persistent surface on every page.</div>
+        </div>
+        <div class="about-zone-item">
+          <div class="about-zone-name">Zone D · Footer</div>
+          <div class="about-zone-desc">AI Chat opens conversational depth for complex planning, nuanced queries, and guided multi-park discovery.</div>
+        </div>
+      </div>
+    </div>
+
+
+
+  </div>
+</div>
+
+<div id="info-card">
+  <button id="card-close">×</button>
+  <div class="card-title"></div>
+  <div class="card-body"></div>
+  <div class="card-role-label">Location</div>
+  <div class="card-location"></div>
+  <div class="card-role-label" style="margin-top:18px;">Role in System</div>
+  <div class="card-role"></div>
+</div>
+
+<div id="hint">Click a surface · Drag to orbit · Scroll to zoom</div>
+
+<div id="controls-bar">
+  <!-- About -->
+  <!-- Node selectors -->
+  <button class="ctrl-btn node-btn" data-node="0"><span class="kbd">1</span><span class="ctrl-label">AI Search</span></button>
+  <button class="ctrl-btn node-btn" data-node="1"><span class="kbd">2</span><span class="ctrl-label">Notifications</span></button>
+  <button class="ctrl-btn node-btn" data-node="2"><span class="kbd">3</span><span class="ctrl-label">Filtered Content</span></button>
+  <button class="ctrl-btn node-btn" data-node="3"><span class="kbd">4</span><span class="ctrl-label">Notif. Center</span></button>
+  <button class="ctrl-btn node-btn" data-node="4"><span class="kbd">5</span><span class="ctrl-label">AI Chat</span></button>
+  <!-- Divider -->
+  <div class="ctrl-sep"></div>
+  <!-- View controls -->
+  <button class="ctrl-btn" id="btn-about"><span class="kbd">A</span><span class="ctrl-label">About</span></button>
+  <button class="ctrl-btn" id="btn-reset"><span class="kbd">R</span><span class="ctrl-label">Reset</span></button>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls }   from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer }  from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+// ── RENDERER ──────────────────────────────────────────────────────────────────
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.88;
+document.body.insertBefore(renderer.domElement, document.getElementById('title'));
+
+// ── SCENE ─────────────────────────────────────────────────────────────────────
+
+const scene = new THREE.Scene();
+scene.fog   = new THREE.FogExp2(0x000000, 0.005);
+
+const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 500);
+camera.position.set(0, 0.4, 2.1);
+
+// ── CONTROLS ──────────────────────────────────────────────────────────────────
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping   = true;
+controls.dampingFactor   = 0.045;
+controls.minDistance     = 2;
+controls.maxDistance     = 18;
+controls.autoRotate      = true;
+controls.autoRotateSpeed = 0.07;
+controls.target.set(0, 0, 0);
+
+renderer.domElement.addEventListener('pointerdown', () => {
+  controls.autoRotate = false;
+}, { once: true });
+
+// ── BLOOM ─────────────────────────────────────────────────────────────────────
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+const bloom = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  1.65,  // strength — lower so individual particles stay distinct
+  0.85,  // radius — wider spread for softer, deeper glow
+  0.04   // threshold
+);
+composer.addPass(bloom);
+
+// ── UTILITIES ─────────────────────────────────────────────────────────────────
+
+const GREEN       = new THREE.Color('#4CAF7D');
+const GREEN_BRIGHT= new THREE.Color('#7effc4');
+const GREEN_DIM   = new THREE.Color('#1c4a32');
+
+// Soft radial sprite for particles
+function makeSprite(res = 64) {
+  const c   = document.createElement('canvas');
+  c.width   = c.height = res;
+  const ctx = c.getContext('2d');
+  const g   = ctx.createRadialGradient(res/2,res/2,0, res/2,res/2,res/2);
+  g.addColorStop(0,    'rgba(255,255,255,1)');
+  g.addColorStop(0.12, 'rgba(255,255,255,0.95)');
+  g.addColorStop(0.45, 'rgba(255,255,255,0.3)');
+  g.addColorStop(1,    'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, res, res);
+  return new THREE.CanvasTexture(c);
+}
+const sprite = makeSprite(64);
+
+function lerpAngle(a, b, t) {
+  let d = b - a;
+  while (d >  Math.PI) d -= Math.PI * 2;
+  while (d < -Math.PI) d += Math.PI * 2;
+  return a + d * t;
+}
+
+// ── PARTICLE FIELD ────────────────────────────────────────────────────────────
+//
+// Distribution math: r = minR + (maxR - minR) * u^bias
+//   bias ≈ 0.33  → uniform sphere volume (particles fill the whole ball evenly)
+//   bias > 0.33  → biased toward center
+//   bias < 0.33  → biased toward the outer surface (good for defining the sphere edge)
+//
+// Shells 1–5 form the 3D orb. Shells 6–7 fill the scene for parallax depth.
+
+const shells = [];
+
+function addShell({ count, minR = 0, maxR, bias, color, sz, op, axis, spd }) {
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.acos(2 * Math.random() - 1);
+    const r     = minR + (maxR - minR) * Math.pow(Math.random(), bias);
+    pos[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+    pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    pos[i*3+2] = r * Math.cos(phi);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({
+    color, size: sz, map: sprite,
+    transparent: true, opacity: op,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+    sizeAttenuation: true, alphaTest: 0.001,
+  });
+  const pts = new THREE.Points(geo, mat);
+  scene.add(pts);
+  shells.push({ pts, mat, axis: axis.normalize(), spd, baseOp: op });
+}
+
+// 1 — White-hot nucleus
+addShell({ count: 600, minR: 0,    maxR: 0.10, bias: 3.5,
+  color: new THREE.Color('#ffffff'), sz: 0.030, op: 1.00,
+  axis: new THREE.Vector3(0.05, 1.0, 0.08), spd:  0.0090 });
+
+// 2 — Luminous inner core
+addShell({ count: 1800, minR: 0.08, maxR: 0.34, bias: 1.8,
+  color: new THREE.Color('#adffd0'), sz: 0.024, op: 0.88,
+  axis: new THREE.Vector3(0.12, 1.0, 0.18), spd: -0.0062 });
+
+// 3 — Orb body: uniform volume fill, expanded core
+addShell({ count: 7000, minR: 0.28, maxR: 1.60, bias: 0.36,
+  color: new THREE.Color('#4CAF7D'), sz: 0.015, op: 0.55,
+  axis: new THREE.Vector3(0.22, 1.0, 0.28), spd:  0.0040 });
+
+// 4 — Surface shimmer: defines the visible sphere edge
+addShell({ count: 2400, minR: 1.30, maxR: 2.10, bias: 0.20,
+  color: new THREE.Color('#38906a'), sz: 0.011, op: 0.36,
+  axis: new THREE.Vector3(0.30, 1.0, -0.18), spd: -0.0028 });
+
+// 5 — Inner atmosphere: first falloff layer
+addShell({ count: 3000, minR: 1.90, maxR: 3.20, bias: 0.42,
+  color: new THREE.Color('#1a5236'), sz: 0.008, op: 0.22,
+  axis: new THREE.Vector3(-0.18, 1.0, 0.25), spd:  0.0016 });
+
+// 5b — Outer falloff: particles thin out rapidly toward the ring zone
+addShell({ count: 2800, minR: 2.80, maxR: 5.00, bias: 0.28,
+  color: new THREE.Color('#112e1e'), sz: 0.007, op: 0.16,
+  axis: new THREE.Vector3(0.25, 1.0, -0.30), spd: -0.0010 });
+
+// 5c — Gossamer haze: barely visible tendrils dissolving into space
+addShell({ count: 2000, minR: 4.50, maxR: 7.50, bias: 0.25,
+  color: new THREE.Color('#0a1e12'), sz: 0.006, op: 0.10,
+  axis: new THREE.Vector3(-0.10, 1.0, 0.40), spd:  0.0006 });
+
+// 6 — Near-scene haze: fills the void between orb and nodes
+addShell({ count: 9000, minR: 1.9, maxR: 7.0, bias: 0.40,
+  color: new THREE.Color('#1e4530'), sz: 0.011, op: 0.62,
+  axis: new THREE.Vector3(0.7, 0.6, -0.3), spd: -0.00016 });
+
+// 7 — Mid-scene sea: extends the particle field into the full scene volume
+addShell({ count: 14000, minR: 6.0, maxR: 18.0, bias: 0.33,
+  color: new THREE.Color('#1e4530'), sz: 0.018, op: 0.70,
+  axis: new THREE.Vector3(-0.5, 0.3, 0.8), spd:  0.00009 });
+
+// 8 — Deep background: faint large particles reaching the far field
+addShell({ count: 10000, minR: 16.0, maxR: 40.0, bias: 0.33,
+  color: new THREE.Color('#132a1e'), sz: 0.030, op: 0.60,
+  axis: new THREE.Vector3(0.3, -0.7, 0.5), spd:  0.00005 });
+
+// 9 — Viewport edge fill: very sparse ultra-far particles to bleed into corners
+addShell({ count: 6000, minR: 35.0, maxR: 80.0, bias: 0.33,
+  color: new THREE.Color('#0d1f16'), sz: 0.040, op: 0.50,
+  axis: new THREE.Vector3(-0.2, 0.9, -0.4), spd:  0.00003 });
+
+// 8 — Equatorial density band (reinforces orbital plane read)
+{
+  const count = 1400;
+  const pos   = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const r     = 0.25 + Math.pow(Math.random(), 0.45) * 0.85;
+    const y     = (Math.random() - 0.5) * 0.28;
+    pos[i*3]   = r * Math.cos(theta);
+    pos[i*3+1] = y;
+    pos[i*3+2] = r * Math.sin(theta);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({
+    color: new THREE.Color('#4CAF7D'), size: 0.012,
+    map: sprite, transparent: true, opacity: 0.32,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+    sizeAttenuation: true, alphaTest: 0.001,
+  });
+  const pts = new THREE.Points(geo, mat);
+  scene.add(pts);
+  shells.push({ pts, mat, axis: new THREE.Vector3(0, 1, 0.08).normalize(), spd: 0.0045, baseOp: 0.32 });
+}
+
+// Solid emissive nucleus mesh — bloom anchor at dead center
+scene.add(Object.assign(new THREE.Mesh(
+  new THREE.SphereGeometry(0.09, 32, 32),
+  new THREE.MeshBasicMaterial({
+    color: new THREE.Color('#c0ffe0'),
+    transparent: true, opacity: 0.70,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  })
+)));
+
+// ── ORBITAL RINGS ─────────────────────────────────────────────────────────────
+
+function makeRing(radius, tube, rx, ry, rz, op, col = GREEN) {
+  const m = new THREE.Mesh(
+    new THREE.TorusGeometry(radius, tube, 3, 240),
+    new THREE.MeshBasicMaterial({
+      color: col, transparent: true, opacity: op,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    })
+  );
+  m.rotation.set(rx, ry, rz);
+  scene.add(m);
+  return m;
+}
+
+const rings = [
+  makeRing(1.70, 0.0022,  0.18,  0.05,  0.0,  0.15),
+  makeRing(2.20, 0.0018,  0.06, -0.12,  0.04, 0.15),
+  makeRing(2.80, 0.0015,  Math.PI * 0.46,  0.09, 0.0, 0.15),
+  makeRing(3.50, 0.0012, -0.10,  0.22,  Math.PI * 0.3, 0.15),
+  makeRing(4.30, 0.0009,  0.32, -0.08,  Math.PI * 0.6, 0.15),
+];
+
+// Per-ring oscillation parameters: { yDrift, ampX, freqX, phX, ampZ, freqZ, phZ }
+const ringOsc = [
+  { y:  0.00042, ax: 0.28, fx: 0.11, px: 0.0,  az: 0.20, fz: 0.08, pz: 1.1 },
+  { y: -0.00030, ax: 0.20, fx: 0.09, px: 2.1,  az: 0.26, fz: 0.12, pz: 0.7 },
+  { y:  0.00022, ax: 0.34, fx: 0.07, px: 1.3,  az: 0.18, fz: 0.10, pz: 2.5 },
+  { y: -0.00016, ax: 0.16, fx: 0.13, px: 0.8,  az: 0.30, fz: 0.06, pz: 1.8 },
+  { y:  0.00011, ax: 0.24, fx: 0.06, px: 1.6,  az: 0.14, fz: 0.09, pz: 0.3 },
+];
+
+// ── BEACON PULSES ─────────────────────────────────────────────────────────────
+//
+// Pure gradient light — two THREE.Sprite instances per wave.
+// Sprites use a soft radial gradient texture; additive blending + bloom
+// makes them read as volumetric expanding light with zero geometry.
+
+const WAVE_POOL     = 4;
+const WAVE_DURATION = 6.5;
+let   nextWaveAt    = 4.0;
+
+// Radial gradient texture: bright green core fading to transparent
+const glowTex = (() => {
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+  g.addColorStop(0,    'rgba(200,255,230,1.0)');
+  g.addColorStop(0.06, 'rgba(76,175,125,0.85)');
+  g.addColorStop(0.22, 'rgba(30,100,70,0.42)');
+  g.addColorStop(0.50, 'rgba(10,50,35,0.14)');
+  g.addColorStop(0.80, 'rgba(3,18,10,0.04)');
+  g.addColorStop(1,    'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 256, 256);
+  return new THREE.CanvasTexture(c);
+})();
+
+const wavePool = Array.from({ length: WAVE_POOL }, () => {
+  const make = () => {
+    const mat = new THREE.SpriteMaterial({
+      map: glowTex, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    const spr = new THREE.Sprite(mat);
+    spr.visible = false;
+    scene.add(spr);
+    return { spr, mat };
+  };
+  return { flash: make(), halo: make(), active: false, age: 0 };
+});
+
+function fireWave(t) {
+  const w = wavePool.find(w => !w.active);
+  if (!w) return;
+  w.active = true;
+  w.age    = 0;
+  w.flash.spr.scale.setScalar(0.01);
+  w.halo.spr.scale.setScalar(0.01);
+  w.flash.spr.visible = true;
+  w.halo.spr.visible  = true;
+  nextWaveAt = t + 10 + Math.random() * 8;
+}
+
+// ── NODE DATA ─────────────────────────────────────────────────────────────────
+
+const NODE_DATA = [
+  {
+    label: 'AI Search',
+    zone:  'Zone A · Nav Bar',
+    pos:   [-2.8,  2.1, -0.5],
+    accent: false,
+    body:   'The primary entry point to the Intelligence Field. When a visitor types a query, the entire Intellitainer layer activates — surfacing content, pathways, and recommendations across Explore.gov based on inferred intent, not just keywords.',
+    role:   'Entry point\nIntent capture\nField activation',
+  },
+  {
+    label: 'Notifications',
+    zone:  'Zone A · Nav Bar',
+    pos:   [-3.1, -0.1,  0.8],
+    accent: false,
+    body:   'A persistent ambient signal in the navigation layer. Notifications reflects the Field\'s awareness in real time — shifting between Idle, Aware, and Live states as the system builds context around the user\'s session.',
+    role:   'Field state indicator\nGateway to Notification Center\nAmbient awareness',
+  },
+  {
+    label: 'Filtered Content',
+    zone:  'Zone B · Filter Bar',
+    pos:   [-2.2, -2.2,  0.3],
+    accent: false,
+    body:   'Contextual tuners that focus the Intelligence Field without navigating away. Signals adjust what the surface prioritizes — by park, season, activity, or intent — shaping the Field\'s output dynamically.',
+    role:   'Context filter\nField tuning\nScoped discovery',
+  },
+  {
+    label: 'Notification Center',
+    zone:  'Zone C · Flyout Panel',
+    pos:   [ 3.4,  0.6,  0.4],
+    accent: true,
+    body:   'The Field\'s active delivery surface. Rather than waiting to be queried, the Notification Center pushes contextual intelligence — alerts, curated pathways, and guidance — as a persistent presence on every page.',
+    role:   'Proactive intelligence\nPersistent surface\nAlways-on guidance',
+  },
+  {
+    label: 'AI Chat',
+    zone:  'Zone D · Footer',
+    pos:   [ 2.7, -1.8, -0.5],
+    accent: false,
+    body:   'Conversational depth for complex questions. When search isn\'t the right modality, Chat provides direct, back-and-forth access to the full intelligence layer — for trip planning, nuanced queries, and guided discovery across all parks.',
+    role:   'Conversational interface\nDeep Field access\nComplex planning',
+  },
+];
+
+// ── BUILD NODES ───────────────────────────────────────────────────────────────
+
+const labelsEl    = document.getElementById('labels');
+const hitTargets  = [];
+const nodeObjects = [];
+const connLines   = [];
+
+NODE_DATA.forEach((nd, idx) => {
+  const v3 = new THREE.Vector3(...nd.pos);
+  const C  = nd.accent ? GREEN : new THREE.Color('#2e2e2e');
+
+  // Glow halo
+  const haloGeo = new THREE.BufferGeometry();
+  haloGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([...nd.pos]), 3));
+  const haloMat = new THREE.PointsMaterial({
+    color:    nd.accent ? GREEN : new THREE.Color('#1e3a2a'),
+    size:     nd.accent ? 0.30 : 0.18,
+    map:      sprite, transparent: true,
+    opacity:  nd.accent ? 0.85 : 0.30,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  const halo = new THREE.Points(haloGeo, haloMat);
+  scene.add(halo);
+
+  // Invisible hit sphere
+  const hit = new THREE.Mesh(
+    new THREE.SphereGeometry(0.34, 8, 8),
+    new THREE.MeshBasicMaterial({ visible: false })
+  );
+  hit.position.copy(v3);
+  hit.userData.index = idx;
+  scene.add(hit);
+  hitTargets.push(hit);
+
+  // Connector line
+  const lineGeo = new THREE.BufferGeometry().setFromPoints([v3, new THREE.Vector3(0,0,0)]);
+  const lineMat = new THREE.LineDashedMaterial({
+    color:    GREEN_DIM,
+    dashSize: 0.065,
+    gapSize:  0.055,
+    transparent: true,
+    opacity:  0.55,
+  });
+  const line = new THREE.Line(lineGeo, lineMat);
+  line.computeLineDistances();
+  scene.add(line);
+  connLines.push({ line, mat: lineMat });
+
+  // HTML label
+  const div = document.createElement('div');
+  div.className   = `node-label${nd.accent ? ' accent' : ''}`;
+  div.dataset.index = idx;
+  div.innerHTML   = `<div class="name">${nd.label}</div>`;
+  labelsEl.appendChild(div);
+
+  nodeObjects.push({
+    halo, haloMat,
+    div, pos: v3, nd,
+    isHovered: false, isSelected: false,
+  });
+});
+
+// ── SELECTION OSCILLATION RINGS (2 shared rings, repositioned on select) ──────
+
+const selRings = Array.from({ length: 1 }, (_, i) => {
+  const r = new THREE.Mesh(
+    new THREE.TorusGeometry(0.32, 0.004, 3, 80),
+    new THREE.MeshBasicMaterial({
+      color: GREEN_BRIGHT,
+      transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    })
+  );
+  r.visible = false;
+  scene.add(r);
+  return r;
+});
+
+// ── VOLTAGE PULSES ────────────────────────────────────────────────────────────
+// Bidirectional: particles travel node → Field AND Field → node simultaneously.
+
+const PULSE_COUNT = 9;
+
+// Outbound: node → Field
+const pulseBuf = new Float32Array(PULSE_COUNT * 3);
+const pulseTs  = Array.from({ length: PULSE_COUNT }, (_, i) => i / PULSE_COUNT);
+const pulseGeo = new THREE.BufferGeometry();
+pulseGeo.setAttribute('position', new THREE.BufferAttribute(pulseBuf, 3));
+const pulseMat = new THREE.PointsMaterial({
+  color: GREEN_BRIGHT, size: 0.05,
+  map: sprite, transparent: true, opacity: 0,
+  blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+});
+scene.add(new THREE.Points(pulseGeo, pulseMat));
+
+const trailBuf = new Float32Array(PULSE_COUNT * 3);
+const trailGeo = new THREE.BufferGeometry();
+trailGeo.setAttribute('position', new THREE.BufferAttribute(trailBuf, 3));
+const trailMat = new THREE.PointsMaterial({
+  color: GREEN, size: 0.09,
+  map: sprite, transparent: true, opacity: 0,
+  blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+});
+scene.add(new THREE.Points(trailGeo, trailMat));
+
+// Inbound: Field → node (staggered offset so they don't overlap outbound)
+const returnBuf = new Float32Array(PULSE_COUNT * 3);
+const returnTs  = Array.from({ length: PULSE_COUNT }, (_, i) => (i + 0.5) / PULSE_COUNT);
+const returnGeo = new THREE.BufferGeometry();
+returnGeo.setAttribute('position', new THREE.BufferAttribute(returnBuf, 3));
+const returnMat = new THREE.PointsMaterial({
+  color: GREEN_BRIGHT, size: 0.05,
+  map: sprite, transparent: true, opacity: 0,
+  blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+});
+scene.add(new THREE.Points(returnGeo, returnMat));
+
+const returnTrailBuf = new Float32Array(PULSE_COUNT * 3);
+const returnTrailGeo = new THREE.BufferGeometry();
+returnTrailGeo.setAttribute('position', new THREE.BufferAttribute(returnTrailBuf, 3));
+const returnTrailMat = new THREE.PointsMaterial({
+  color: GREEN, size: 0.09,
+  map: sprite, transparent: true, opacity: 0,
+  blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+});
+scene.add(new THREE.Points(returnTrailGeo, returnTrailMat));
+
+// ── BACKGROUND STARS ──────────────────────────────────────────────────────────
+
+function addStarLayer(count, rMin, rMax, color, size, op) {
+  const pos = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const t = Math.random() * Math.PI * 2;
+    const p = Math.acos(2 * Math.random() - 1);
+    const r = rMin + Math.random() * (rMax - rMin);
+    pos[i*3]   = r * Math.sin(p) * Math.cos(t);
+    pos[i*3+1] = r * Math.sin(p) * Math.sin(t);
+    pos[i*3+2] = r * Math.cos(p);
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({
+    color, size, transparent: true, opacity: op,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  })));
+}
+
+addStarLayer(2500,  5, 18, new THREE.Color('#1a3a28'), 0.016, 0.60);
+addStarLayer(2000, 16, 28, new THREE.Color('#0f2418'), 0.022, 0.45);
+
+// ── INFO CARD ─────────────────────────────────────────────────────────────────
+
+const infoCard = document.getElementById('info-card');
+let   selectedIdx = null;
+
+// ── ABOUT CARD ────────────────────────────────────────────────────────────────
+
+const aboutCard = document.getElementById('about-card');
+let   aboutVisible = false;
+
+function showAbout() {
+  if (selectedIdx !== null) hideCard();
+  aboutCard.classList.add('visible');
+  aboutVisible = true;
+  document.getElementById('btn-about').classList.add('active');
+}
+
+function hideAbout() {
+  aboutCard.classList.remove('visible');
+  aboutVisible = false;
+  document.getElementById('btn-about').classList.remove('active');
+}
+
+document.getElementById('about-close').addEventListener('click', hideAbout);
+document.getElementById('btn-about').addEventListener('click', () => {
+  aboutVisible ? hideAbout() : showAbout();
+});
+
+function showCard(idx) {
+  if (aboutVisible) hideAbout();
+  const nd = NODE_DATA[idx];
+  infoCard.querySelector('.card-title').textContent    = nd.label;
+  infoCard.querySelector('.card-body').textContent     = nd.body;
+  infoCard.querySelector('.card-location').textContent = nd.zone;
+  infoCard.querySelector('.card-role').textContent     = nd.role;
+  infoCard.classList.add('visible');
+  labelsEl.classList.add('active');
+
+  nodeObjects.forEach((no, i) => {
+    no.isSelected = i === idx;
+    no.div.classList.toggle('selected', i === idx);
+  });
+  selectedIdx = idx;
+  syncCtrlBtns(idx);
+
+  // Swing camera so the selected node lands in the upper-left of the frame,
+  // in close proximity to the flyout card (left: 40px).
+  // Positive camRight shift moves camera rightward → node drifts screen-left.
+  // Lowering base.y tilts the view upward → node rises in frame.
+  controls.autoRotate = false;
+  const nPos     = nodeObjects[idx].pos;
+  const dir      = nPos.clone().normalize();
+  const base     = dir.clone().multiplyScalar(6.5);
+  const camRight = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), dir).normalize();
+  base.addScaledVector(camRight, 3.2);
+  base.y -= 1.4;
+
+  // Project node through the swing target to predict its screen X,
+  // then flip the card to whichever side keeps it clear of the node.
+  const tempCam = camera.clone();
+  tempCam.position.copy(base);
+  tempCam.lookAt(0, 0, 0);
+  tempCam.updateMatrixWorld();
+  const tempProj  = nPos.clone().project(tempCam);
+  const nodeScreenX = (tempProj.x * 0.5 + 0.5) * window.innerWidth;
+  if (nodeScreenX < window.innerWidth * 0.5) {
+    infoCard.classList.add('flip-right');
+  } else {
+    infoCard.classList.remove('flip-right');
+  }
+
+  startCamSwing(base);
+}
+
+function hideCard() {
+  infoCard.classList.remove('visible', 'flip-right');
+  labelsEl.classList.remove('active');
+  nodeObjects.forEach(no => {
+    no.isSelected = false;
+    no.div.classList.remove('selected');
+  });
+  selectedIdx = null;
+  syncCtrlBtns(null);
+  // Cancel any in-progress swing and restore controls
+  if (camSwing) { camSwing = null; controls.enabled = true; }
+}
+
+document.getElementById('card-close').addEventListener('click', hideCard);
+
+// ── CONTROLS: sync active state on node buttons ───────────────────────────────
+
+function syncCtrlBtns(activeIdx) {
+  document.querySelectorAll('.node-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === activeIdx);
+  });
+}
+
+// Orbit toggle
+let orbitActive = true;
+function setOrbit(on) {
+  orbitActive         = on;
+  controls.autoRotate = on;
+}
+
+// Reset camera to default position
+function resetCamera() {
+  hideCard();
+  startCamSwing(new THREE.Vector3(0, 0.4, 2.1));
+}
+
+// Node buttons
+document.querySelectorAll('.node-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const idx = parseInt(btn.dataset.node, 10);
+    if (selectedIdx === idx) { hideCard(); return; }
+    showCard(idx);
+  });
+});
+
+document.getElementById('btn-reset').addEventListener('click', resetCamera);
+
+// Keyboard shortcuts
+window.addEventListener('keydown', e => {
+  // 1–5: jump to node
+  const n = parseInt(e.key, 10) - 1;
+  if (n >= 0 && n < NODE_DATA.length) {
+    if (selectedIdx === n) { hideCard(); return; }
+    showCard(n);
+    return;
+  }
+  switch (e.key) {
+    case 'a': case 'A':  aboutVisible ? hideAbout() : showAbout(); break;
+    case 'r': case 'R':  resetCamera();              break;
+    case ' ':            e.preventDefault(); setOrbit(!orbitActive); break;
+    case 'Escape':       hideCard();                  break;
+    case 'ArrowRight': {
+      e.preventDefault();
+      const next = selectedIdx === null ? 0 : (selectedIdx + 1) % NODE_DATA.length;
+      showCard(next);
+      break;
+    }
+    case 'ArrowLeft': {
+      e.preventDefault();
+      const prev = selectedIdx === null ? NODE_DATA.length - 1 : (selectedIdx - 1 + NODE_DATA.length) % NODE_DATA.length;
+      showCard(prev);
+      break;
+    }
+  }
+});
+
+labelsEl.addEventListener('click', e => {
+  const lbl = e.target.closest('.node-label');
+  if (!lbl) return;
+  const idx = parseInt(lbl.dataset.index, 10);
+  if (selectedIdx === idx) { hideCard(); return; }
+  showCard(idx);
+});
+
+// ── CAMERA SWING ──────────────────────────────────────────────────────────────
+
+let camSwing = null; // { fromSph, toSph, progress }
+
+const _sph = new THREE.Spherical();
+
+function startCamSwing(targetWorldPos) {
+  controls.enabled = false;  // freeze OrbitControls so it can't override our swing
+  const from = new THREE.Spherical().setFromVector3(camera.position);
+  const to   = new THREE.Spherical().setFromVector3(targetWorldPos);
+  camSwing = { from, to, progress: 0 };
+}
+
+function tickCamSwing(delta) {
+  if (!camSwing) return;
+  camSwing.progress = Math.min(camSwing.progress + delta / 1.8, 1);
+  const e = easeInOutCubic(camSwing.progress);
+
+  _sph.theta  = lerpAngle(camSwing.from.theta, camSwing.to.theta, e);
+  _sph.phi    = THREE.MathUtils.lerp(camSwing.from.phi,   camSwing.to.phi,   e);
+  _sph.radius = THREE.MathUtils.lerp(camSwing.from.radius,camSwing.to.radius,e);
+
+  camera.position.setFromSpherical(_sph);
+  camera.lookAt(0, 0, 0);
+  controls.target.set(0, 0, 0);
+
+  if (camSwing.progress >= 1) {
+    camSwing = null;
+    controls.enabled = true;  // hand control back to the user
+  }
+}
+
+function easeInOutCubic(x) {
+  return x < 0.5 ? 4*x*x*x : 1 - Math.pow(-2*x+2,3)/2;
+}
+
+// ── RAYCASTER ─────────────────────────────────────────────────────────────────
+
+const raycaster = new THREE.Raycaster();
+const mouse     = new THREE.Vector2();
+let   hoveredIdx = null;
+
+function updateHover(clientX, clientY) {
+  mouse.x =  (clientX / window.innerWidth)  * 2 - 1;
+  mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(hitTargets);
+
+  const newHover = hits.length > 0 ? hits[0].object.userData.index : null;
+  if (newHover !== hoveredIdx) {
+    if (hoveredIdx !== null) applyNodeState(hoveredIdx);
+    hoveredIdx = newHover;
+    if (hoveredIdx !== null) applyNodeState(hoveredIdx, true, false);
+  }
+  renderer.domElement.style.cursor = newHover !== null ? 'pointer' : '';
+}
+
+function applyNodeState(idx, hovered = false, selected = nodeObjects[idx].isSelected) {
+  const { haloMat, nd } = nodeObjects[idx];
+  const on = hovered || selected;
+  const ac = nd.accent;
+
+  haloMat.opacity = on ? (ac ? 1.0 : 0.75) : (ac ? 0.85 : 0.30);
+  haloMat.color.set(on ? GREEN_BRIGHT : (ac ? GREEN : new THREE.Color('#1e3a2a')));
+  haloMat.size    = on ? 0.38 : (ac ? 0.30 : 0.18);
+}
+
+renderer.domElement.addEventListener('mousemove', e => updateHover(e.clientX, e.clientY));
+
+renderer.domElement.addEventListener('click', e => {
+  mouse.x =  (e.clientX / window.innerWidth)  * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(hitTargets);
+  if (hits.length > 0) {
+    const idx = hits[0].object.userData.index;
+    if (selectedIdx === idx) { hideCard(); return; }
+    showCard(idx);
+  } else if (!infoCard.contains(e.target)) {
+    hideCard();
+  }
+});
+
+// ── LABEL PROJECTION ──────────────────────────────────────────────────────────
+
+const projVec = new THREE.Vector3();
+
+function updateLabels() {
+  // ── Pass 1: project every node to screen space ───────────────────────────
+  const slots = nodeObjects.map(({ pos, div }, i) => {
+    projVec.copy(pos).project(camera);
+    if (projVec.z > 1) { div.style.opacity = '0'; return null; }
+    const sx   = (projVec.x *  0.5 + 0.5) * window.innerWidth;
+    const sy   = (projVec.y * -0.5 + 0.5) * window.innerHeight;
+    const left = projVec.x < 0;
+    const hOff = i === selectedIdx ? 72 : 22;
+    const vOff = i === selectedIdx ? 6  : 14;
+    const ax   = sx + (left ? -hOff : hOff);   // anchor x (CSS left)
+    const ay   = sy + (projVec.y > 0 ? -vOff : vOff); // anchor y (CSS top)
+    return { div, ax, ay, adjY: ay, left };
+  });
+
+  // ── Pass 2: iterative vertical collision resolution ───────────────────────
+  const LBL_W = 150;  // approx label width
+  const LBL_H = 34;   // approx label height (two lines)
+  const PAD   = 4;    // extra breathing room
+
+  for (let iter = 0; iter < 8; iter++) {
+    for (let a = 0; a < slots.length - 1; a++) {
+      if (!slots[a]) continue;
+      for (let b = a + 1; b < slots.length; b++) {
+        if (!slots[b]) continue;
+        // Skip pairs that are too far apart horizontally to ever overlap
+        if (Math.abs(slots[a].ax - slots[b].ax) > LBL_W) continue;
+        const dy      = slots[a].adjY - slots[b].adjY;
+        const overlap = LBL_H + PAD - Math.abs(dy);
+        if (overlap <= 0) continue;
+        const push = overlap / 2 + 1;
+        if (dy >= 0) { slots[a].adjY += push; slots[b].adjY -= push; }
+        else         { slots[a].adjY -= push; slots[b].adjY += push; }
+      }
+    }
+  }
+
+  // ── Pass 3: apply final positions ────────────────────────────────────────
+  slots.forEach(s => {
+    if (!s) return;
+    s.div.style.left      = `${s.ax}px`;
+    s.div.style.top       = `${s.adjY}px`;
+    s.div.style.opacity   = '1';
+    s.div.style.textAlign = s.left ? 'right' : 'left';
+    s.div.style.transform = s.left ? 'translate(-100%,-50%)' : 'translate(0,-50%)';
+  });
+}
+
+// ── RESIZE ────────────────────────────────────────────────────────────────────
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ── ANIMATE ───────────────────────────────────────────────────────────────────
+
+const clock   = new THREE.Clock();
+let   elapsed = 0;
+
+(function tick() {
+  requestAnimationFrame(tick);
+  const delta = clock.getDelta();
+  elapsed    += delta;
+  const t     = elapsed;
+
+  // Particle shell rotation + breath
+  shells.forEach(({ pts, mat, axis, spd, baseOp }, i) => {
+    pts.rotateOnAxis(axis, spd);
+    mat.opacity = baseOp + Math.sin(t * 0.18 + i * 1.9) * 0.03;
+  });
+
+  // Orbital ring oscillation — sine-driven precession + slow Y drift
+  rings.forEach((r, i) => {
+    const o = ringOsc[i];
+    r.rotation.y += o.y;
+    r.rotation.x  = o.ax * Math.sin(t * o.fx + o.px);
+    r.rotation.z  = o.az * Math.sin(t * o.fz + o.pz);
+  });
+
+  // Beacon pulses
+  if (t > nextWaveAt) fireWave(t);
+
+  wavePool.forEach(w => {
+    if (!w.active) return;
+    w.age += delta;
+    const p = Math.min(w.age / WAVE_DURATION, 1);
+    if (p >= 1) {
+      w.active = false;
+      w.flash.spr.visible = false;
+      w.halo.spr.visible  = false;
+      return;
+    }
+    // Ramp in over first 8%, power-curve fade out
+    const op = p < 0.08 ? p / 0.08 : Math.pow(1 - (p - 0.08) / 0.92, 2.2);
+    // Flash: tight, bright, expands to ~3.5 units
+    w.flash.spr.scale.setScalar(Math.max(p * 3.5, 0.01));
+    w.flash.mat.opacity = op * 0.80;
+    // Halo: wide, dim, expands to ~8 units
+    w.halo.spr.scale.setScalar(Math.max(p * 8.0, 0.01));
+    w.halo.mat.opacity = op * 0.30;
+  });
+
+  // Node state updates
+  nodeObjects.forEach(({ isSelected }, i) => {
+    applyNodeState(i, i === hoveredIdx, isSelected);
+  });
+
+  // Connector lines — dim non-selected, brighten selected
+  connLines.forEach(({ mat }, i) => {
+    const sel = i === selectedIdx;
+    mat.color.set(sel ? new THREE.Color('#3a9060') : GREEN_DIM);
+    mat.opacity = sel ? 0.92 : 0.38;
+    mat.dashOffset -= sel ? 0.008 : 0.0012;
+  });
+
+  // Selection oscillation rings — slow, meditative breathing
+  if (selectedIdx !== null) {
+    const selPos = nodeObjects[selectedIdx].pos;
+    selRings.forEach(r => {
+      r.visible = true;
+      r.position.copy(selPos);
+
+      r.rotation.x = Math.sin(t * 0.28) * 0.14;
+      r.rotation.y = t * 0.14;
+      r.rotation.z = t * -0.09;
+
+      const osc = Math.sin(t * 0.75);
+      r.scale.setScalar(1 + osc * 0.08);
+      r.material.opacity = 0.30 + osc * 0.14;
+    });
+  } else {
+    selRings.forEach(r => { r.visible = false; });
+  }
+
+  // Voltage pulses — particles drifting from selected node to Field center
+  if (selectedIdx !== null) {
+    const origin = nodeObjects[selectedIdx].pos;
+    const dest   = new THREE.Vector3(0, 0, 0);
+    const SPEED  = 0.0038;
+
+    for (let i = 0; i < PULSE_COUNT; i++) {
+      // Outbound: node → Field
+      pulseTs[i] = (pulseTs[i] + SPEED + i * 0.0003) % 1;
+      const op   = new THREE.Vector3().lerpVectors(origin, dest, pulseTs[i]);
+      pulseBuf[i*3]   = op.x;
+      pulseBuf[i*3+1] = op.y;
+      pulseBuf[i*3+2] = op.z;
+      const tp   = new THREE.Vector3().lerpVectors(origin, dest, Math.max(0, pulseTs[i] - 0.04));
+      trailBuf[i*3]   = tp.x;
+      trailBuf[i*3+1] = tp.y;
+      trailBuf[i*3+2] = tp.z;
+
+      // Inbound: Field → node
+      returnTs[i] = (returnTs[i] + SPEED + i * 0.0003) % 1;
+      const rp   = new THREE.Vector3().lerpVectors(dest, origin, returnTs[i]);
+      returnBuf[i*3]   = rp.x;
+      returnBuf[i*3+1] = rp.y;
+      returnBuf[i*3+2] = rp.z;
+      const rtp  = new THREE.Vector3().lerpVectors(dest, origin, Math.max(0, returnTs[i] - 0.04));
+      returnTrailBuf[i*3]   = rtp.x;
+      returnTrailBuf[i*3+1] = rtp.y;
+      returnTrailBuf[i*3+2] = rtp.z;
+    }
+
+    pulseGeo.attributes.position.needsUpdate       = true;
+    trailGeo.attributes.position.needsUpdate       = true;
+    returnGeo.attributes.position.needsUpdate      = true;
+    returnTrailGeo.attributes.position.needsUpdate = true;
+    pulseMat.opacity       = 0.90;
+    trailMat.opacity       = 0.30;
+    returnMat.opacity      = 0.90;
+    returnTrailMat.opacity = 0.30;
+  } else {
+    pulseMat.opacity       = 0;
+    trailMat.opacity       = 0;
+    returnMat.opacity      = 0;
+    returnTrailMat.opacity = 0;
+  }
+
+  // Camera swing animation (spherical arc)
+  tickCamSwing(delta);
+
+  controls.update();
+  updateLabels();
+  composer.render();
+})();
+</script>
+</body>
+</html>

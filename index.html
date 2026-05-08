@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>G-1 · Intellitainer</title>
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+
+    #stage {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    #slide-img {
+      display: block;
+      /* Images are 2x (3840×2160) — declare their logical size so the
+         browser renders them at the correct density without upscaling */
+      width: 1920px;
+      height: 1080px;
+      max-width: 100vw;
+      max-height: 100vh;
+      object-fit: contain;
+    }
+
+    #slide-iframe {
+      display: none;
+      width: 1920px;
+      height: 1080px;
+      border: none;
+      transform-origin: center center;
+      flex-shrink: 0;
+    }
+
+    /* Hotspot overlay — scaled canvas aligned to the 1920×1080 slide space */
+    #hotspot-layer {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    #hotspot-canvas {
+      width: 1920px;
+      height: 1080px;
+      position: relative;
+      transform-origin: center center;
+      flex-shrink: 0;
+    }
+
+    .hotspot {
+      position: absolute;
+      pointer-events: auto;
+      cursor: pointer;
+      background: transparent;
+      display: block;
+    }
+
+    /* Underline-on-hover for labelled links (slide 31) */
+    .hotspot-link {
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.15s;
+    }
+
+    .hotspot-link:hover {
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Edge nav zones — always on top, always clickable */
+    #nav-prev, #nav-next {
+      position: fixed;
+      top: 0;
+      width: 72px;
+      height: 100vh;
+      z-index: 100;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    #nav-prev { left: 0; }
+    #nav-next { right: 0; }
+    #nav-prev:hover, #nav-next:hover { opacity: 1; }
+
+    #nav-prev::after, #nav-next::after {
+      content: '';
+      width: 26px;
+      height: 26px;
+      border-left: 2px solid rgba(255, 255, 255, 0.7);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.7);
+    }
+    #nav-prev::after { transform: rotate(45deg) translateX(4px); }
+    #nav-next::after { transform: rotate(-135deg) translateX(4px); }
+  </style>
+</head>
+<body>
+
+<div id="stage">
+  <img id="slide-img" src="" alt="">
+  <iframe id="slide-iframe" src="" tabindex="-1" allowfullscreen></iframe>
+</div>
+
+<div id="hotspot-layer">
+  <div id="hotspot-canvas"></div>
+</div>
+
+<div id="nav-prev" title="Previous"></div>
+<div id="nav-next" title="Next"></div>
+<div id="counter"></div>
+<div id="hint">← → to navigate &nbsp;·&nbsp; F to fullscreen</div>
+
+<script>
+  // Slide 10 · The Field (index 9) replaced with an embedded interactive site
+  const IFRAME_SLIDES = {
+    9: 'field_interactive.html'
+  };
+
+  // Hotspot regions per slide index (0-based), coordinates in 1920×1080 space.
+  // type 'cta'  — large invisible zone, cursor:pointer only (slides 18, 20)
+  // type 'link' — underlines on hover (slide 31)
+  const HOTSPOTS = {
+    17: [  // Slide 18 · Megamenu
+      { x: 400, y: 355, w: 1120, h: 130,
+        url: 'https://app.paper.design/file/01KQSYB20G4P4E36WKCHV0YKB0/7-2',
+        type: 'cta' }
+    ],
+    19: [  // Slide 20 · Account Profile
+      { x: 400, y: 355, w: 1120, h: 130,
+        url: 'https://app.paper.design/file/01KQSYB20G4P4E36WKCHV0YKB0/2-0',
+        type: 'cta' }
+    ],
+    30: [  // Slide 31 · Appendix · Links
+      { x: 62, y: 260, w: 220, h: 55,
+        url: 'https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/3-0',
+        type: 'link' },
+      { x: 62, y: 328, w: 340, h: 55,
+        url: 'https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/C-1',
+        type: 'link' },
+      { x: 62, y: 394, w: 165, h: 55,
+        url: 'https://www.figma.com/design/SGH6YV53bR2GMp781BSJBS/Explore.gov?node-id=65954-27863',
+        type: 'link' }
+    ]
+  };
+
+  // null = iframe slide (no image file)
+  const slides = [
+    'slide-01.webp',
+    'slide-02.webp',
+    'slide-03.webp',
+    'slide-04.webp',
+    'slide-05.webp',
+    'slide-06.webp',
+    'slide-07.webp',
+    'slide-08.webp',
+    'slide-09.webp',
+    null,            // 10 · The Field — interactive iframe
+    'slide-11.webp',
+    'slide-12.webp',
+    'slide-13.webp',
+    'slide-14.webp',
+    'slide-15.webp',
+    'slide-16.webp',
+    'slide-17.webp',
+    'slide-18.webp',
+    'slide-19.webp',
+    'slide-20.webp',
+    'slide-21.webp',
+    'slide-22.webp',
+    'slide-23.webp',
+    'slide-24.webp',
+    'slide-25.webp',
+    'slide-26.webp',
+    'slide-27.webp',
+    'slide-28.webp',
+    'slide-29.webp',
+    'slide-30.webp',
+    'slide-31.webp',
+    'slide-32.webp'
+  ];
+
+  let current = 0;
+
+  const img          = document.getElementById('slide-img');
+  const iframe       = document.getElementById('slide-iframe');
+  const counter      = document.getElementById('counter');
+  const hint         = document.getElementById('hint');
+  const hotspotCanvas = document.getElementById('hotspot-canvas');
+
+  function scaleCanvas() {
+    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    iframe.style.transform        = `scale(${scale})`;
+    hotspotCanvas.style.transform = `scale(${scale})`;
+  }
+
+  function renderHotspots(index) {
+    hotspotCanvas.innerHTML = '';
+    const spots = HOTSPOTS[index];
+    if (!spots) return;
+    spots.forEach(({ x, y, w, h, url, type }) => {
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.className = 'hotspot' + (type === 'link' ? ' hotspot-link' : '');
+      a.style.left   = x + 'px';
+      a.style.top    = y + 'px';
+      a.style.width  = w + 'px';
+      a.style.height = h + 'px';
+      hotspotCanvas.appendChild(a);
+    });
+  }
+
+  function show(index) {
+    current = Math.max(0, Math.min(slides.length - 1, index));
+    const iframeUrl = IFRAME_SLIDES[current];
+
+    if (iframeUrl !== undefined) {
+      if (iframe.dataset.loaded !== iframeUrl) {
+        iframe.src = iframeUrl;
+        iframe.dataset.loaded = iframeUrl;
+      }
+      img.style.display    = 'none';
+      iframe.style.display = 'block';
+    } else {
+      img.src              = slides[current];
+      img.style.display    = 'block';
+      iframe.style.display = 'none';
+    }
+
+    renderHotspots(current);
+    scaleCanvas();
+    counter.textContent = (current + 1) + ' / ' + slides.length;
+    document.body.focus();
+  }
+
+  function next() { show(current + 1); }
+  function prev() { show(current - 1); }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  function preload(index) {
+    if (index >= 0 && index < slides.length && slides[index]) {
+      new Image().src = slides[index];
+    }
+  }
+
+  img.addEventListener('load', () => {
+    preload(current + 1);
+    preload(current - 1);
+  });
+
+  window.addEventListener('resize', scaleCanvas);
+
+  document.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'ArrowRight':
+      case 'ArrowDown':
+      case ' ':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft':
+      case 'ArrowUp':
+        e.preventDefault(); prev(); break;
+      case 'f': case 'F':
+        toggleFullscreen(); break;
+      case 'Home': show(0); break;
+      case 'End':  show(slides.length - 1); break;
+    }
+  });
+
+  document.getElementById('nav-prev').addEventListener('click', prev);
+  document.getElementById('nav-next').addEventListener('click', next);
+
+  setTimeout(() => hint.classList.add('hidden'), 4000);
+
+  document.body.setAttribute('tabindex', '-1');
+  show(0);
+</script>
+
+</body>
+</html>
