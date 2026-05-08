@@ -15,17 +15,22 @@
       font-family: 'Inter', system-ui, sans-serif;
       font-size: 120px; font-weight: 500;
       letter-spacing: -0.025em; line-height: 1;
-      color: #fff;
+      color: transparent;
       text-decoration: none;
       white-space: nowrap;
       cursor: pointer; z-index: 10;
     }
-    .link:hover {
-      text-decoration: underline;
-      text-decoration-color: #fff;
-      text-decoration-thickness: 3px;
-      text-underline-offset: 10px;
+    .link::after {
+      content: '';
+      position: absolute;
+      bottom: -8px; left: 0; right: 0.05em;
+      height: 3px;
+      background: #fff;
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    .link:hover::after { transform: scaleX(1); }
   </style>
 </head>
 <body>
