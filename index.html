@@ -305,16 +305,16 @@
   const SLIDE_NAMES = [
     'Cover',
     'Contents',
-    'Introduction',
+    'Introduction · Cover',
     'What This Is / Isn\'t',
     'Journey States',
     'The Gap',
-    'Architecture',
+    'Architecture · Cover',
     'System Architecture',
     'Zone Map',
     'The Field',
     'The Surface',
-    'Examples',
+    'Examples · Cover',
     'Landing Experience',
     'Notification Center',
     'AI Search',
@@ -323,7 +323,7 @@
     'Megamenu',
     'Account Profile',
     'Account Profile',
-    'Frameworks',
+    'Frameworks · Cover',
     'Three Interaction Modes',
     'Signal Taxonomy',
     'Signal Inventory',
@@ -332,23 +332,15 @@
     'Principles',
     'Build Plan',
     'Let\'s Start Building',
-    'Appendix',
+    'Appendix · Cover',
     'Appendix · Links',
-    'Thank You'
+    'Thank You · End'
   ];
 
-  // Slides replaced with interactive HTML
-  const IFRAME_SLIDES = {
-     9: 'field_interactive.html',
-    17: 'slide-18-interactive.html',
-    19: 'slide-20-interactive.html',
-    30: 'slide-31-interactive.html'
-  };
-
+  const IFRAME_SLIDES = {};
   const HOTSPOTS = {};
 
-  // All 32 webp files (used for thumbnails + display; iframes override display only)
-  const SLIDE_IMGS = Array.from({ length: 32 }, (_, i) => `slide-${String(i+1).padStart(2,'0')}.webp`);
+  const SLIDE_IMGS = Array.from({ length: 32 }, (_, i) => `slide-${String(i+1).padStart(2,'0')}.jpg`);
 
   let current = 0;
   let gridOpen = false;
