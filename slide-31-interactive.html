@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>31 · Appendix · Links</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 1920px;
+      height: 1080px;
+      background: #000;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    header {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 84px;
+      padding: 0 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .eyebrow {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      color: #666;
+      text-transform: uppercase;
+    }
+
+    .rule {
+      position: absolute;
+      left: 0; right: 0;
+      height: 1px;
+      background: #222;
+    }
+    .rule-header { top: 84px; }
+
+    /* Links stack left-aligned, starting ~180px below the header rule —
+       matching the visual position from the original slide design */
+    main {
+      position: absolute;
+      top: 84px; left: 80px; right: 80px; bottom: 96px;
+      padding-top: 178px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .link {
+      font-family: 'Inter', sans-serif;
+      font-size: 48px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: #fff;
+      text-decoration: none;
+      display: inline-block;
+      transition: opacity 0.15s;
+    }
+    .link:hover { opacity: 0.55; }
+
+    footer {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 96px;
+      padding: 0 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .page-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      font-weight: 300;
+      color: #555;
+    }
+
+    .studio {
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="eyebrow">EXG · Intelligence System</span>
+    <span class="eyebrow">Playbook · 2026-05-08</span>
+  </header>
+  <div class="rule rule-header"></div>
+
+  <main>
+    <a class="link"
+       href="https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/3-0"
+       target="_blank"
+       rel="noopener noreferrer">
+      Intelligent DS
+    </a>
+    <a class="link"
+       href="https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/C-1"
+       target="_blank"
+       rel="noopener noreferrer">
+      Audit &amp; Opportunities
+    </a>
+    <a class="link"
+       href="https://www.figma.com/design/SGH6YV53bR2GMp781BSJBS/Explore.gov?node-id=65954-27863"
+       target="_blank"
+       rel="noopener noreferrer">
+      Research
+    </a>
+  </main>
+
+  <footer>
+    <svg width="28" height="20" viewBox="0 0 28 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="28" height="2" fill="white"/>
+      <rect y="9" width="28" height="2" fill="white"/>
+      <rect y="18" width="28" height="2" fill="white"/>
+    </svg>
+    <div class="footer-right">
+      <span class="page-num">31</span>
+      <span class="studio">National Design Studio</span>
+    </div>
+  </footer>
+
+</body>
+</html>

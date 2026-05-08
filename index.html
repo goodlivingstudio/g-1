@@ -131,37 +131,16 @@
 <div id="hint">← → to navigate &nbsp;·&nbsp; F to fullscreen</div>
 
 <script>
-  // Slide 10 · The Field (index 9) replaced with an embedded interactive site
+  // Slides replaced with interactive HTML equivalents
   const IFRAME_SLIDES = {
-    9: 'field_interactive.html'
+     9: 'field_interactive.html',
+    17: 'slide-18-interactive.html',
+    19: 'slide-20-interactive.html',
+    30: 'slide-31-interactive.html'
   };
 
-  // Hotspot regions per slide index (0-based), coordinates in 1920×1080 space.
-  // type 'cta'  — large invisible zone, cursor:pointer only (slides 18, 20)
-  // type 'link' — underlines on hover (slide 31)
-  const HOTSPOTS = {
-    17: [  // Slide 18 · Megamenu — full body zone
-      { x: 80, y: 90, w: 1760, h: 900,
-        url: 'https://app.paper.design/file/01KQSYB20G4P4E36WKCHV0YKB0/7-2',
-        type: 'cta' }
-    ],
-    19: [  // Slide 20 · Account Profile — full body zone
-      { x: 80, y: 90, w: 1760, h: 900,
-        url: 'https://app.paper.design/file/01KQSYB20G4P4E36WKCHV0YKB0/2-0',
-        type: 'cta' }
-    ],
-    30: [  // Slide 31 · Appendix · Links
-      { x: 62, y: 245, w: 280, h: 72,
-        url: 'https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/3-0',
-        type: 'link' },
-      { x: 62, y: 318, w: 420, h: 72,
-        url: 'https://app.paper.design/file/01KQ7K57JX5Y460TKEKQZGXV2F/C-1',
-        type: 'link' },
-      { x: 62, y: 390, w: 200, h: 72,
-        url: 'https://www.figma.com/design/SGH6YV53bR2GMp781BSJBS/Explore.gov?node-id=65954-27863',
-        type: 'link' }
-    ]
-  };
+  // No overlay hotspots needed — links are native <a> elements in the iframes
+  const HOTSPOTS = {};
 
   // null = iframe slide (no image file)
   const slides = [
@@ -182,9 +161,9 @@
     'slide-15.webp',
     'slide-16.webp',
     'slide-17.webp',
-    'slide-18.webp',
+    null,            // 18 · Megamenu — interactive iframe
     'slide-19.webp',
-    'slide-20.webp',
+    null,            // 20 · Account Profile — interactive iframe
     'slide-21.webp',
     'slide-22.webp',
     'slide-23.webp',
@@ -195,7 +174,7 @@
     'slide-28.webp',
     'slide-29.webp',
     'slide-30.webp',
-    'slide-31.webp',
+    null,            // 31 · Appendix · Links — interactive iframe
     'slide-32.webp'
   ];
 
