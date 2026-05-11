@@ -79,6 +79,52 @@
 
     #hint.gone { opacity: 0; }
 
+    /* ── Nav arrows (Field slide only) ──────────────────────────────────── */
+    #nav-prev, #nav-next {
+      position: fixed;
+      top: 0;
+      height: 100vh;
+      width: 120px;
+      z-index: 150;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    #nav-prev { left: 0; }
+    #nav-next { right: 0; }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 56px;
+      height: 56px;
+      transition: transform 0.15s;
+    }
+
+    #nav-prev:hover .nav-btn,
+    #nav-next:hover .nav-btn {
+      transform: scale(1.12);
+    }
+
+    .arrow {
+      width: 22px;
+      height: 22px;
+      border-left: 2.5px solid rgba(255,255,255,0.25);
+      border-bottom: 2.5px solid rgba(255,255,255,0.25);
+      transition: border-color 0.2s;
+    }
+
+    #nav-prev:hover .arrow,
+    #nav-next:hover .arrow {
+      border-color: rgba(255,255,255,1);
+    }
+
+    #nav-prev .arrow { transform: rotate(45deg) translate(4px, -4px); }
+    #nav-next .arrow { transform: rotate(-135deg) translate(-4px, -4px); }
+
     /* ── Hotspot overlay ─────────────────────────────────────────────────── */
     #hotspot-layer {
       position: fixed;
@@ -240,6 +286,9 @@
 
 <div id="hotspot-layer"><div id="hotspot-canvas"></div></div>
 
+<div id="nav-prev"><div class="nav-btn"><div class="arrow"></div></div></div>
+<div id="nav-next"><div class="nav-btn"><div class="arrow"></div></div></div>
+
 <!-- Grid overview -->
 <div id="grid">
   <div id="grid-header">
@@ -309,6 +358,8 @@
   const hotspotCanvas  = document.getElementById('hotspot-canvas');
   const grid           = document.getElementById('grid');
   const gridInner      = document.getElementById('grid-inner');
+  const navPrev        = document.getElementById('nav-prev');
+  const navNext        = document.getElementById('nav-next');
 
   // ── Scaling ───────────────────────────────────────────────────────────────
   function getScale() {
@@ -358,6 +409,11 @@
 
     renderHotspots(index);
     applyScale();
+
+    // Show nav arrows only on The Field interactive slide
+    const showNav = (index === 9);
+    navPrev.style.display = showNav ? 'flex' : 'none';
+    navNext.style.display = showNav ? 'flex' : 'none';
 
     progress.style.width = `${((index + 1) / SLIDE_IMGS.length) * 100}%`;
 
@@ -462,6 +518,10 @@
     preload(current + 1);
     preload(current + 2);
   });
+
+  // ── Navigation clicks ─────────────────────────────────────────────────────
+  navPrev.addEventListener('click', prev);
+  navNext.addEventListener('click', next);
 
   // ── Keyboard ──────────────────────────────────────────────────────────────
   document.addEventListener('keydown', e => {
