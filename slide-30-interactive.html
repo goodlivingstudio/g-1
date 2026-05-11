@@ -16,26 +16,20 @@
       font-size: 48px; font-weight: 600;
       letter-spacing: -0.02em; line-height: 1;
       color: transparent;
-      text-decoration: none;
+      text-decoration: underline;
+      text-decoration-color: transparent;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 6px;
+      text-decoration-skip-ink: none;
       white-space: nowrap;
       cursor: pointer; z-index: 10;
-      width: max-content;
+      transition: text-decoration-color 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .link-1 { top: 368px; }
     .link-2 { top: 456px; }
     .link-3 { top: 544px; }
 
-    .link::after {
-      content: '';
-      position: absolute;
-      bottom: -5px; left: 0; right: 0;
-      height: 2px;
-      background: #fff;
-      transform: scaleX(0);
-      transform-origin: left center;
-      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .link:hover::after { transform: scaleX(1); }
+    .link:hover { text-decoration-color: #fff; }
   </style>
 </head>
 <body>
