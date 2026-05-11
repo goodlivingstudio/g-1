@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>30 · Appendix · Links</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
@@ -12,21 +12,20 @@
     .link {
       position: absolute;
       left: 80px;
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: 'Inter Variable', 'Inter', system-ui, sans-serif;
       font-size: 48px; font-weight: 600;
-      letter-spacing: -0.02em; line-height: 1;
-      color: transparent;
+      letter-spacing: -0.02em; line-height: 48px;
+      color: #ffffff;
       text-decoration: none;
       white-space: nowrap;
-      background: transparent;
       cursor: pointer; z-index: 10;
-      transition: background 0.3s ease;
+      transition: color 0.3s ease;
     }
     .link-1 { top: 368px; }
     .link-2 { top: 456px; }
     .link-3 { top: 544px; }
 
-    .link:hover { background: rgba(255,255,255,0.15); }
+    .link:hover { color: rgba(255,255,255,0.4); }
   </style>
 </head>
 <body>
